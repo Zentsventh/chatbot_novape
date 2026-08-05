@@ -1,0 +1,314 @@
+%%{init: {"flowchart": {"curve": "step"}}}%%
+flowchart LR
+
+%% =========================
+%% ESTILOS
+%% =========================
+classDef entity fill:#fff,stroke:#000,color:#000;
+classDef relation fill:#fff,stroke:#000,color:#000;
+
+%% =========================
+%% MÓDULO: SUSCRIPCIONES / MULTI-TENANT
+%% =========================
+subgraph MOD_CORE["SUSCRIPCIONES / MULTI-TENANT"]
+  SUBSCRIPTION_PLAN[SUBSCRIPTION_PLAN]
+  TENANT[TENANT]
+
+  R_CONTRATA{contrata}
+end
+style MOD_CORE fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: USUARIOS / SEGURIDAD
+%% =========================
+subgraph MOD_USUARIOS["USUARIOS / SEGURIDAD"]
+  USER[USER]
+  ACTIVITY_LOG[ACTIVITY_LOG]
+  NOTIFICATION[NOTIFICATION]
+  PASSWORD_RESET_TOKEN[PASSWORD_RESET_TOKEN]
+  SESSION[SESSION]
+
+  R_TIENE_USER{tiene}
+  R_AUDIT{genera}
+  R_NOTIF{recibe}
+  R_RESET{recupera}
+  R_SESSION{sesion}
+end
+style MOD_USUARIOS fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: CONFIGURACIÓN CHATBOT / IA
+%% =========================
+subgraph MOD_CHATBOT["CONFIGURACIÓN CHATBOT / IA"]
+  CHATBOT_KNOWLEDGE[CHATBOT_KNOWLEDGE]
+  TENANT_CHANNEL[TENANT_CHANNEL]
+  CANNED_RESPONSE[CANNED_RESPONSE]
+
+  R_CONFIGURA{configura}
+  R_CONECTA{conecta}
+  R_DEFINE_RESP{define}
+  R_CREA_RESP{crea}
+end
+style MOD_CHATBOT fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: CONTACTOS / CRM
+%% =========================
+subgraph MOD_CRM["CONTACTOS / CRM"]
+  CONTACT[CONTACT]
+  DEAL[DEAL]
+  APPOINTMENT[APPOINTMENT]
+  TAG[TAG]
+  TAGGABLE[TAGGABLE]
+
+  R_RECIBE{recibe}
+  R_OPORTUNIDAD{oportunidad}
+  R_CITA{agenda}
+  R_TIENE_TAG{etiqueta}
+  R_APLICA_TAG{aplica}
+  R_ASIGNA_CONTACTO{asigna}
+end
+style MOD_CRM fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: MENSAJERÍA OMNICANAL
+%% =========================
+subgraph MOD_MENSAJERIA["MENSAJERIA OMNICANAL"]
+  CONVERSATION[CONVERSATION]
+  MESSAGE[MESSAGE]
+
+  R_GESTIONA{gestiona}
+  R_PARTICIPA{participa}
+  R_CONTIENE{contiene}
+  R_ATIENDE{atiende}
+  R_ENVIA{envia}
+  R_RESPONDE{responde}
+  R_ALMACENA{almacena}
+end
+style MOD_MENSAJERIA fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: COLABORACIÓN EN EQUIPO
+%% =========================
+subgraph MOD_EQUIPO["COLABORACION EN EQUIPO"]
+  CONVERSATION_NOTE[CONVERSATION_NOTE]
+  CONVERSATION_ASSIGNMENT[CONVERSATION_ASSIGNMENT]
+  ASSIGNMENT_RULE[ASSIGNMENT_RULE]
+
+  R_NOTA{escribe}
+  R_ASIGNA{asigna}
+  R_REGLA{aplica_regla}
+  R_NOTA_CONV{anota}
+  R_HIST_CONV{historial}
+  R_REGLA_TENANT{configura}
+end
+style MOD_EQUIPO fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: COMUNICACIÓN INTERNA
+%% =========================
+subgraph MOD_INTERNO["COMUNICACION INTERNA"]
+  INTERNAL_CHAT[INTERNAL_CHAT]
+  INTERNAL_CHAT_PARTICIPANT[INTERNAL_CHAT_PARTICIPANT]
+  INTERNAL_MESSAGE[INTERNAL_MESSAGE]
+
+  R_CHAT_INT{crea_chat}
+  R_PARTICIPA_INT{participa}
+  R_MSG_INT{envia_msg}
+  R_CHAT_TENANT{pertenece}
+end
+style MOD_INTERNO fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: SECUENCIAS AUTOMÁTICAS
+%% =========================
+subgraph MOD_SECUENCIAS["SECUENCIAS AUTOMATICAS"]
+  SEQUENCE[SEQUENCE]
+  SEQUENCE_STEP[SEQUENCE_STEP]
+  SEQUENCE_ENROLLMENT[SEQUENCE_ENROLLMENT]
+
+  R_SEQ_TENANT{tiene_seq}
+  R_SEQ_STEP{tiene_paso}
+  R_SEQ_ENROLL{inscribe}
+  R_SEQ_CONTACT{contacto_en}
+end
+style MOD_SECUENCIAS fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: MONITOREO / API
+%% =========================
+subgraph MOD_MONITOREO["MONITOREO / CONSUMO API"]
+  API_USAGE_LOG[API_USAGE_LOG]
+
+  R_CONSUME{consume}
+  R_AUDIT_TENANT{audita}
+end
+style MOD_MONITOREO fill:none,stroke:#000;
+
+%% =========================
+%% MÓDULO: INFRAESTRUCTURA
+%% =========================
+subgraph MOD_INFRA["INFRAESTRUCTURA LARAVEL"]
+  JOB[JOB]
+  JOB_BATCH[JOB_BATCH]
+  FAILED_JOB[FAILED_JOB]
+  CACHE[CACHE]
+  CACHE_LOCK[CACHE_LOCK]
+  MIGRATION[MIGRATION]
+end
+style MOD_INFRA fill:none,stroke:#000;
+
+%% =========================
+%% CONEXIONES
+%% =========================
+
+%% CORE
+SUBSCRIPTION_PLAN -- "1,N" --> R_CONTRATA
+R_CONTRATA -- "1,1" --> TENANT
+
+%% TENANT -> Usuarios
+TENANT -- "1,N" --> R_TIENE_USER
+R_TIENE_USER -- "1,1" --> USER
+
+%% TENANT -> Chatbot (1:1)
+TENANT -- "1,1" --> R_CONFIGURA
+R_CONFIGURA -- "1,1" --> CHATBOT_KNOWLEDGE
+
+%% TENANT -> Canales
+TENANT -- "1,N" --> R_CONECTA
+R_CONECTA -- "1,1" --> TENANT_CHANNEL
+
+%% TENANT -> Contactos
+TENANT -- "1,N" --> R_RECIBE
+R_RECIBE -- "1,1" --> CONTACT
+
+%% TENANT -> Conversaciones
+TENANT -- "1,N" --> R_GESTIONA
+R_GESTIONA -- "1,1" --> CONVERSATION
+
+%% TENANT -> Mensajes
+TENANT -- "1,N" --> R_ALMACENA
+R_ALMACENA -- "1,1" --> MESSAGE
+
+%% TENANT -> Respuestas Rápidas
+TENANT -- "1,N" --> R_DEFINE_RESP
+R_DEFINE_RESP -- "1,1" --> CANNED_RESPONSE
+
+%% TENANT -> API Usage
+TENANT -- "1,N" --> R_CONSUME
+R_CONSUME -- "1,1" --> API_USAGE_LOG
+
+%% TENANT -> Activity Logs
+TENANT -- "0,N" --> R_AUDIT_TENANT
+R_AUDIT_TENANT -- "1,1" --> ACTIVITY_LOG
+
+%% TENANT -> Tags
+TENANT -- "1,N" --> R_TIENE_TAG
+R_TIENE_TAG -- "1,1" --> TAG
+
+%% TENANT -> Reglas de Asignación
+TENANT -- "1,N" --> R_REGLA_TENANT
+R_REGLA_TENANT -- "1,1" --> ASSIGNMENT_RULE
+
+%% TENANT -> Secuencias
+TENANT -- "1,N" --> R_SEQ_TENANT
+R_SEQ_TENANT -- "1,1" --> SEQUENCE
+
+%% TENANT -> Chat Interno
+TENANT -- "1,N" --> R_CHAT_TENANT
+R_CHAT_TENANT -- "1,1" --> INTERNAL_CHAT
+
+%% CONTACTO -> Conversaciones
+CONTACT -- "1,N" --> R_PARTICIPA
+R_PARTICIPA -- "1,1" --> CONVERSATION
+
+%% CONVERSACIÓN -> Mensajes
+CONVERSATION -- "1,N" --> R_CONTIENE
+R_CONTIENE -- "1,1" --> MESSAGE
+
+%% USUARIO -> Conversaciones
+USER -- "0,N" --> R_ATIENDE
+R_ATIENDE -- "1,1" --> CONVERSATION
+
+%% CONTACTO -> Mensajes
+CONTACT -- "1,N" --> R_ENVIA
+R_ENVIA -- "1,1" --> MESSAGE
+
+%% USUARIO -> Mensajes
+USER -- "0,N" --> R_RESPONDE
+R_RESPONDE -- "1,1" --> MESSAGE
+
+%% USUARIO -> Activity Logs
+USER -- "0,N" --> R_AUDIT
+R_AUDIT -- "1,1" --> ACTIVITY_LOG
+
+%% USUARIO -> Notificaciones
+USER -- "1,N" --> R_NOTIF
+R_NOTIF -- "1,1" --> NOTIFICATION
+
+%% USUARIO -> Respuestas Rápidas
+USER -- "0,N" --> R_CREA_RESP
+R_CREA_RESP -- "1,1" --> CANNED_RESPONSE
+
+%% USUARIO -> Password Reset
+USER -- "0,1" --> R_RESET
+R_RESET -- "1,1" --> PASSWORD_RESET_TOKEN
+
+%% USUARIO -> Sessions
+USER -- "0,N" --> R_SESSION
+R_SESSION -- "1,1" --> SESSION
+
+%% CRM: Contacto -> Deals
+CONTACT -- "1,N" --> R_OPORTUNIDAD
+R_OPORTUNIDAD -- "1,1" --> DEAL
+
+%% CRM: Contacto -> Citas
+CONTACT -- "1,N" --> R_CITA
+R_CITA -- "1,1" --> APPOINTMENT
+
+%% CRM: Contacto -> Asignado a usuario
+CONTACT -- "0,1" --> R_ASIGNA_CONTACTO
+R_ASIGNA_CONTACTO -- "1,1" --> USER
+
+%% Tags -> Taggables (polimórfico)
+TAG -- "1,N" --> R_APLICA_TAG
+R_APLICA_TAG -- "1,1" --> TAGGABLE
+
+%% EQUIPO: Notas internas
+USER -- "1,N" --> R_NOTA
+R_NOTA -- "1,1" --> CONVERSATION_NOTE
+CONVERSATION -- "1,N" --> R_NOTA_CONV
+R_NOTA_CONV -- "1,1" --> CONVERSATION_NOTE
+
+%% EQUIPO: Historial de asignaciones
+CONVERSATION -- "1,N" --> R_HIST_CONV
+R_HIST_CONV -- "1,1" --> CONVERSATION_ASSIGNMENT
+USER -- "0,N" --> R_ASIGNA
+R_ASIGNA -- "1,1" --> CONVERSATION_ASSIGNMENT
+
+%% EQUIPO: Regla -> Asignación
+ASSIGNMENT_RULE -- "0,N" --> R_REGLA
+R_REGLA -- "1,1" --> CONVERSATION_ASSIGNMENT
+
+%% Secuencias
+SEQUENCE -- "1,N" --> R_SEQ_STEP
+R_SEQ_STEP -- "1,1" --> SEQUENCE_STEP
+SEQUENCE -- "1,N" --> R_SEQ_ENROLL
+R_SEQ_ENROLL -- "1,1" --> SEQUENCE_ENROLLMENT
+CONTACT -- "0,N" --> R_SEQ_CONTACT
+R_SEQ_CONTACT -- "1,1" --> SEQUENCE_ENROLLMENT
+
+%% Chat Interno
+INTERNAL_CHAT -- "1,N" --> R_PARTICIPA_INT
+R_PARTICIPA_INT -- "1,1" --> INTERNAL_CHAT_PARTICIPANT
+USER -- "0,N" --> R_CHAT_INT
+R_CHAT_INT -- "1,1" --> INTERNAL_CHAT_PARTICIPANT
+INTERNAL_CHAT -- "1,N" --> R_MSG_INT
+R_MSG_INT -- "1,1" --> INTERNAL_MESSAGE
+
+%% =========================
+%% APLICAR ESTILOS
+%% =========================
+class SUBSCRIPTION_PLAN,TENANT,USER,CHATBOT_KNOWLEDGE,TENANT_CHANNEL,CONTACT,CONVERSATION,MESSAGE,CANNED_RESPONSE,API_USAGE_LOG,ACTIVITY_LOG,NOTIFICATION,PASSWORD_RESET_TOKEN,SESSION,JOB,JOB_BATCH,FAILED_JOB,CACHE,CACHE_LOCK,MIGRATION,CONVERSATION_NOTE,CONVERSATION_ASSIGNMENT,ASSIGNMENT_RULE,TAG,TAGGABLE,DEAL,APPOINTMENT,INTERNAL_CHAT,INTERNAL_CHAT_PARTICIPANT,INTERNAL_MESSAGE,SEQUENCE,SEQUENCE_STEP,SEQUENCE_ENROLLMENT entity;
+
+class R_CONTRATA,R_TIENE_USER,R_CONFIGURA,R_CONECTA,R_RECIBE,R_GESTIONA,R_PARTICIPA,R_CONTIENE,R_ATIENDE,R_ENVIA,R_RESPONDE,R_ALMACENA,R_DEFINE_RESP,R_CREA_RESP,R_CONSUME,R_AUDIT,R_AUDIT_TENANT,R_NOTIF,R_RESET,R_SESSION,R_NOTA,R_ASIGNA,R_REGLA,R_NOTA_CONV,R_HIST_CONV,R_REGLA_TENANT,R_OPORTUNIDAD,R_CITA,R_TIENE_TAG,R_APLICA_TAG,R_ASIGNA_CONTACTO,R_CHAT_INT,R_PARTICIPA_INT,R_MSG_INT,R_CHAT_TENANT,R_SEQ_TENANT,R_SEQ_STEP,R_SEQ_ENROLL,R_SEQ_CONTACT relation;

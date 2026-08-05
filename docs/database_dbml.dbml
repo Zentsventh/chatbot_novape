@@ -1,0 +1,484 @@
+// ============================================================================
+// SMART AI HOSTING SOLUTIONS — Esquema DBML v2.0
+// ============================================================================
+// Para visualizar: https://dbdiagram.io
+// Cambios v2.0: Roles expandidos, CRM, Notas internas, Asignación automática,
+//               Reservas/Citas, Chat interno, Secuencias, Etiquetas.
+// ============================================================================
+
+// === CORE ===
+
+Table subscription_plans [headercolor: #3B82F6, note: 'Planes SaaS'] {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  slug varchar(100) [unique, not null]
+  description text
+  price decimal(10,2) [not null, default: 0.00]
+  currency varchar(3) [not null, default: 'USD']
+  billing_cycle enum('monthly','yearly') [not null, default: 'monthly']
+  max_agents smallint [not null, default: 1]
+  max_channels tinyint [not null, default: 1]
+  message_limit_per_month int [not null, default: 1000]
+  ai_engine_allowed enum('local','gemini','both') [not null, default: 'local']
+  has_crm boolean [not null, default: false]
+  has_appointments boolean [not null, default: false]
+  has_sequences boolean [not null, default: false]
+  has_internal_chat boolean [not null, default: true]
+  has_auto_assignment boolean [not null, default: false]
+  features json
+  sort_order tinyint [not null, default: 0]
+  is_active boolean [not null, default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table tenants [headercolor: #EF4444, note: 'Empresas clientes (Multi-tenant)'] {
+  id bigint [pk, increment]
+  subscription_plan_id bigint [not null, ref: > subscription_plans.id]
+  company_name varchar(150) [not null]
+  slug varchar(150) [unique, not null]
+  legal_name varchar(200)
+  tax_id varchar(30)
+  contact_email varchar(255) [not null]
+  phone varchar(20)
+  country varchar(3)
+  timezone varchar(50) [not null, default: 'America/Lima']
+  logo_url varchar(500)
+  status enum('trial','active','suspended','cancelled') [not null, default: 'trial']
+  trial_ends_at timestamp
+  subscription_starts_at timestamp
+  subscription_ends_at timestamp
+  current_month_message_count int [not null, default: 0]
+  message_count_reset_at timestamp
+  api_token varchar(100) [unique]
+  settings json
+  notes text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table users [headercolor: #8B5CF6, note: 'Usuarios: SuperAdmin, Admin, Supervisor, Agente'] {
+  id bigint [pk, increment]
+  tenant_id bigint [ref: > tenants.id, note: 'NULL = SuperAdmin']
+  name varchar(150) [not null]
+  email varchar(255) [unique, not null]
+  email_verified_at timestamp
+  password varchar(255) [not null]
+  role enum('super_admin','tenant_admin','tenant_supervisor','tenant_agent') [not null, default: 'tenant_agent']
+  avatar_url varchar(500)
+  is_active boolean [not null, default: true]
+  is_online boolean [not null, default: false]
+  is_available boolean [not null, default: true, note: 'Para asignacion automatica']
+  max_concurrent_conversations tinyint [not null, default: 10]
+  current_conversation_count tinyint [not null, default: 0]
+  last_login_at timestamp
+  last_login_ip varchar(45)
+  remember_token varchar(100)
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table chatbot_knowledges [headercolor: #10B981, note: 'Base de conocimiento del bot (1:1)'] {
+  id bigint [pk, increment]
+  tenant_id bigint [unique, not null, ref: - tenants.id]
+  bot_name varchar(100) [not null, default: 'Asistente Virtual']
+  system_prompt text
+  business_hours json
+  catalog json
+  faqs json
+  custom_instructions text
+  welcome_message text
+  out_of_hours_message text
+  bot_paused_message text
+  quota_exceeded_message text
+  is_bot_active boolean [not null, default: true]
+  max_context_messages tinyint [not null, default: 10]
+  ai_temperature decimal(2,1) [not null, default: 0.7]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table tenant_channels [headercolor: #F59E0B, note: 'Canales de mensajeria'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  channel enum('whatsapp','messenger','instagram') [not null]
+  channel_name varchar(100)
+  phone_number_id varchar(50)
+  whatsapp_business_id varchar(50)
+  page_id varchar(50)
+  instagram_account_id varchar(50)
+  access_token text [note: 'ENCRIPTADO']
+  webhook_verify_token varchar(100)
+  is_active boolean [not null, default: true]
+  is_verified boolean [not null, default: false]
+  last_webhook_at timestamp
+  settings json
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === CONTACTOS / CRM ===
+
+Table contacts [headercolor: #06B6D4, note: 'Clientes finales con CRM'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  name varchar(150)
+  phone_number varchar(20)
+  messenger_id varchar(100)
+  instagram_id varchar(100)
+  email varchar(255)
+  company varchar(150) [note: 'Empresa del contacto']
+  profile_picture_url varchar(500)
+  notes text
+  metadata json
+  is_blocked boolean [not null, default: false]
+  assigned_user_id bigint [ref: > users.id, note: 'Agente principal']
+  first_interaction_at timestamp
+  last_interaction_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table tags [headercolor: #D946EF, note: 'Etiquetas personalizables'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  name varchar(50) [not null]
+  slug varchar(50) [not null]
+  color varchar(7) [not null, default: '#6B7280']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table taggables [headercolor: #D946EF, note: 'Pivot polimorfico de etiquetas'] {
+  id bigint [pk, increment]
+  tag_id bigint [not null, ref: > tags.id]
+  taggable_type varchar(100) [not null]
+  taggable_id bigint [not null]
+  created_at timestamp
+}
+
+Table deals [headercolor: #F43F5E, note: 'Oportunidades de venta (CRM)'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  contact_id bigint [not null, ref: > contacts.id]
+  assigned_user_id bigint [ref: > users.id]
+  title varchar(200) [not null]
+  description text
+  value decimal(12,2)
+  currency varchar(3) [not null, default: 'USD']
+  stage enum('lead','prospect','proposal','negotiation','won','lost') [not null, default: 'lead']
+  probability tinyint
+  expected_close_date date
+  closed_at timestamp
+  lost_reason varchar(500)
+  metadata json
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table appointments [headercolor: #0EA5E9, note: 'Reservas y citas (Agenda)'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  contact_id bigint [not null, ref: > contacts.id]
+  assigned_user_id bigint [ref: > users.id]
+  title varchar(200) [not null]
+  description text
+  scheduled_at timestamp [not null]
+  duration_minutes smallint [not null, default: 30]
+  status enum('scheduled','confirmed','in_progress','completed','cancelled','no_show') [not null, default: 'scheduled']
+  location varchar(300)
+  notes text
+  reminder_sent_at timestamp
+  cancelled_at timestamp
+  cancel_reason varchar(500)
+  source enum('manual','chatbot','api') [not null, default: 'manual']
+  metadata json
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === MENSAJERIA OMNICANAL ===
+
+Table conversations [headercolor: #EC4899, note: 'Hilos de chat omnicanal'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  contact_id bigint [not null, ref: > contacts.id]
+  assigned_user_id bigint [ref: > users.id]
+  channel enum('whatsapp','messenger','instagram') [not null]
+  status enum('open','bot_active','human_active','waiting','resolved','closed') [not null, default: 'bot_active']
+  priority enum('low','normal','high','urgent') [not null, default: 'normal']
+  subject varchar(255)
+  is_bot_paused boolean [not null, default: false]
+  bot_paused_at timestamp
+  bot_paused_by bigint [ref: > users.id]
+  auto_assigned boolean [not null, default: false]
+  assignment_rule_id bigint
+  last_message_at timestamp
+  last_message_preview varchar(255)
+  message_count int [not null, default: 0]
+  unread_count int [not null, default: 0]
+  resolved_at timestamp
+  resolved_by bigint [ref: > users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table messages [headercolor: #F97316, note: 'Historial omnicanal (BIG DATA)'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  conversation_id bigint [not null, ref: > conversations.id]
+  contact_id bigint [not null, ref: > contacts.id]
+  user_id bigint [ref: > users.id]
+  channel enum('whatsapp','messenger','instagram') [not null]
+  direction enum('inbound','outbound') [not null]
+  message_type enum('text','image','audio','video','document','sticker','location','contact','template','interactive','reaction','unsupported') [not null, default: 'text']
+  content text
+  media_url varchar(500)
+  media_mime_type varchar(100)
+  media_file_size int
+  is_ai_generated boolean [not null, default: false]
+  ai_engine_used enum('local','gemini')
+  ai_tokens_used int [default: 0]
+  ai_response_time_ms int
+  is_internal_note boolean [not null, default: false, note: 'No se envia al cliente']
+  status enum('queued','sent','delivered','read','failed','deleted') [not null, default: 'queued']
+  error_message varchar(500)
+  external_message_id varchar(255)
+  metadata json
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === COLABORACION EN EQUIPO ===
+
+Table conversation_notes [headercolor: #84CC16, note: 'Notas internas (solo equipo)'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  conversation_id bigint [not null, ref: > conversations.id]
+  user_id bigint [not null, ref: > users.id]
+  content text [not null]
+  mentioned_users json [note: 'IDs de @mencionados']
+  is_pinned boolean [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table conversation_assignments [headercolor: #84CC16, note: 'Historial de asignaciones'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  conversation_id bigint [not null, ref: > conversations.id]
+  assigned_from_user_id bigint [ref: > users.id, note: 'Agente anterior']
+  assigned_to_user_id bigint [not null, ref: > users.id, note: 'Nuevo agente']
+  assigned_by_user_id bigint [ref: > users.id, note: 'Quien asigno (NULL=auto)']
+  assignment_type enum('auto','manual','transfer','escalation') [not null, default: 'manual']
+  assignment_rule_id bigint [ref: > assignment_rules.id]
+  reason varchar(500)
+  created_at timestamp
+}
+
+Table assignment_rules [headercolor: #84CC16, note: 'Reglas de asignacion automatica'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  name varchar(100) [not null]
+  description text
+  priority tinyint [not null, default: 0]
+  conditions json [not null, note: 'Canal, horario, keywords']
+  target_type enum('specific_agent','round_robin','least_busy','random') [not null, default: 'round_robin']
+  target_user_id bigint [ref: > users.id]
+  fallback_action enum('queue','assign_admin','leave_unassigned') [not null, default: 'queue']
+  is_active boolean [not null, default: true]
+  times_triggered int [not null, default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === COMUNICACION INTERNA ===
+
+Table internal_chats [headercolor: #7C3AED, note: 'Chat entre trabajadores'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  name varchar(100) [note: 'NULL = chat directo']
+  type enum('direct','group') [not null, default: 'direct']
+  created_by bigint [ref: > users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table internal_chat_participants [headercolor: #7C3AED, note: 'Participantes'] {
+  id bigint [pk, increment]
+  internal_chat_id bigint [not null, ref: > internal_chats.id]
+  user_id bigint [not null, ref: > users.id]
+  role enum('member','admin') [not null, default: 'member']
+  last_read_at timestamp
+  joined_at timestamp
+  left_at timestamp
+}
+
+Table internal_messages [headercolor: #7C3AED, note: 'Mensajes internos y llamadas'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  internal_chat_id bigint [not null, ref: > internal_chats.id]
+  user_id bigint [not null, ref: > users.id]
+  content text
+  message_type enum('text','image','file','audio','call_started','call_ended') [not null, default: 'text']
+  media_url varchar(500)
+  call_duration_seconds int
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === SECUENCIAS AUTOMATICAS ===
+
+Table sequences [headercolor: #14B8A6, note: 'Secuencias de mensajes'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  name varchar(100) [not null]
+  description text
+  channel enum('whatsapp','messenger','instagram','all') [not null, default: 'all']
+  trigger_type enum('manual','new_contact','tag_added','inactivity','appointment_reminder') [not null, default: 'manual']
+  trigger_config json
+  is_active boolean [not null, default: false]
+  total_enrolled int [not null, default: 0]
+  total_completed int [not null, default: 0]
+  created_by bigint [ref: > users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table sequence_steps [headercolor: #14B8A6, note: 'Pasos de secuencia'] {
+  id bigint [pk, increment]
+  sequence_id bigint [not null, ref: > sequences.id]
+  step_order tinyint [not null]
+  delay_minutes int [not null, default: 0]
+  message_content text [not null]
+  message_type enum('text','image','template','interactive') [not null, default: 'text']
+  media_url varchar(500)
+  condition json
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table sequence_enrollments [headercolor: #14B8A6, note: 'Contactos en secuencias'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  sequence_id bigint [not null, ref: > sequences.id]
+  contact_id bigint [not null, ref: > contacts.id]
+  current_step tinyint [not null, default: 1]
+  status enum('active','paused','completed','cancelled','failed') [not null, default: 'active']
+  next_step_at timestamp
+  enrolled_at timestamp
+  completed_at timestamp
+  cancelled_at timestamp
+  cancel_reason varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === COMPLEMENTARIAS ===
+
+Table canned_responses [headercolor: #64748B, note: 'Respuestas rapidas'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  title varchar(100) [not null]
+  shortcut varchar(50)
+  content text [not null]
+  category varchar(50)
+  is_active boolean [not null, default: true]
+  usage_count int [not null, default: 0]
+  created_by bigint [ref: > users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table api_usage_logs [headercolor: #64748B, note: 'Consumo de APIs'] {
+  id bigint [pk, increment]
+  tenant_id bigint [not null, ref: > tenants.id]
+  service enum('gemini','local_ai','whatsapp','messenger','instagram') [not null]
+  endpoint varchar(255)
+  tokens_input int [not null, default: 0]
+  tokens_output int [not null, default: 0]
+  tokens_total int [not null, default: 0]
+  estimated_cost decimal(10,6) [not null, default: 0]
+  response_time_ms int
+  status_code smallint
+  is_successful boolean [not null, default: true]
+  error_message text
+  created_at timestamp
+}
+
+Table activity_logs [headercolor: #64748B, note: 'Auditoria'] {
+  id bigint [pk, increment]
+  tenant_id bigint [ref: > tenants.id]
+  user_id bigint [ref: > users.id]
+  action varchar(100) [not null]
+  entity_type varchar(100)
+  entity_id bigint
+  description text
+  old_values json
+  new_values json
+  ip_address varchar(45)
+  user_agent varchar(500)
+  created_at timestamp
+}
+
+Table notifications [headercolor: #64748B, note: 'Notificaciones Laravel'] {
+  id char(36) [pk]
+  type varchar(255) [not null]
+  notifiable_type varchar(255) [not null]
+  notifiable_id bigint [not null]
+  data json [not null]
+  read_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// === INFRA LARAVEL ===
+
+Table sessions [headercolor: #9CA3AF] {
+  id varchar(255) [pk]
+  user_id bigint
+  ip_address varchar(45)
+  user_agent text
+  payload longtext [not null]
+  last_activity int [not null]
+}
+
+Table password_reset_tokens [headercolor: #9CA3AF] {
+  email varchar(255) [pk]
+  token varchar(255) [not null]
+  created_at timestamp
+}
+
+Table jobs [headercolor: #9CA3AF] {
+  id bigint [pk, increment]
+  queue varchar(255) [not null]
+  payload longtext [not null]
+  attempts tinyint [not null]
+  reserved_at int
+  available_at int [not null]
+  created_at int [not null]
+}
+
+Table failed_jobs [headercolor: #9CA3AF] {
+  id bigint [pk, increment]
+  uuid varchar(255) [unique, not null]
+  connection text [not null]
+  queue text [not null]
+  payload longtext [not null]
+  exception longtext [not null]
+  failed_at timestamp [not null]
+}
+
+Table cache [headercolor: #9CA3AF] {
+  key varchar(255) [pk]
+  value mediumtext [not null]
+  expiration int [not null]
+}
+
+Table migrations [headercolor: #9CA3AF] {
+  id int [pk, increment]
+  migration varchar(255) [not null]
+  batch int [not null]
+}
