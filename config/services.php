@@ -43,4 +43,8 @@ return [
         'api_version' => env('WHATSAPP_API_VERSION', 'v21.0'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

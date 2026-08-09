@@ -22,16 +22,16 @@
     </div>
 
     {{-- Buscador --}}
-    <div class="px-4 mb-3">
-        <div class="relative">
-            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <div class="px-4 mb-2">
+        <div class="relative group">
+            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] group-hover:text-[#64748B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar en chats..."
                 x-model="searchQuery"
-                class="w-full pl-9 pr-3 py-2 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0056D2]/20 focus:border-[#0056D2] placeholder-[#94A3B8] transition-all"
+                class="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#0056D2]/10 focus:border-[#0056D2] placeholder-slate-400 transition-all hover:bg-white"
             >
         </div>
     </div>
@@ -39,15 +39,16 @@
     {{-- Lista de Conversaciones --}}
     <div class="flex-1 overflow-y-auto custom-scrollbar" x-show="listTab === 'clientes'">
         <template x-for="conv in filteredConversations" :key="conv.id">
-            <div
-                @click="selectConversation(conv)"
-                :class="[
-                    'conversation-item px-4 py-3 flex items-center gap-3 border-b border-[#F1F5F9]',
-                    selectedConversation && selectedConversation.id === conv.id ? 'active' : '',
-                    conv.priority === 'urgent' ? 'priority-urgent border-l-3' : '',
-                    conv.priority === 'high' ? 'priority-high border-l-3' : ''
-                ]"
-            >
+            <div class="px-2 mb-1">
+                <div
+                    @click="selectConversation(conv)"
+                    :class="[
+                        'conversation-item px-3 py-3 rounded-xl flex items-center gap-3 transition-all',
+                        selectedConversation && selectedConversation.id === conv.id ? 'bg-[#EFF6FF] shadow-sm border border-[#0056D2]/10 ring-1 ring-[#0056D2]/5' : 'hover:bg-slate-50 border border-transparent hover:border-slate-100',
+                        conv.priority === 'urgent' ? 'border-l-4 border-l-[#EF4444]' : '',
+                        conv.priority === 'high' ? 'border-l-4 border-l-[#F59E0B]' : ''
+                    ]"
+                >
                 {{-- Avatar --}}
                 <div class="relative shrink-0">
                     <div
@@ -95,8 +96,9 @@
 
                 {{-- Badge no leídos --}}
                 <div x-show="conv.unreadCount > 0" class="shrink-0">
-                    <span class="badge bg-[#0056D2] text-white" x-text="conv.unreadCount"></span>
+                    <span class="badge bg-[#0056D2] text-white shadow-sm ring-2 ring-white" x-text="conv.unreadCount"></span>
                 </div>
+            </div>
             </div>
         </template>
     </div>

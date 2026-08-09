@@ -1,7 +1,7 @@
 {{-- Área de Chat Central --}}
 <div class="flex-1 flex flex-col bg-[#F8FAFC] min-w-0">
-    {{-- Tabs de Canal --}}
-    <div class="bg-white border-b border-[#E2E8F0] px-4 py-0 flex items-center gap-1 shrink-0">
+    {{-- Tabs de Canal (Header) --}}
+    <div class="bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-1 flex items-center gap-2 shrink-0 sticky top-0 z-10 shadow-sm">
         {{-- WhatsApp --}}
         <button
             @click="activeChannel = 'whatsapp'"
@@ -115,25 +115,34 @@
                         </template>
 
                         {{-- Mensaje entrante (cliente) --}}
-                        <template x-if="msg.direction === 'inbound' && !msg.isInternalNote && !msg.isSystemEvent">
-                            <div class="flex justify-start animate-slide-left">
-                                <div class="bubble-incoming px-4 py-2.5">
-                                    <p class="text-sm leading-relaxed" x-html="msg.content"></p>
-                                    <div class="flex items-center justify-end gap-1 mt-1">
-                                        <span class="text-[10px] text-[#94A3B8]" x-text="msg.time"></span>
-                                    </div>
-                                </div>
+                    {{-- Burbuja (Nota interna o Mensaje) --}}
+                    <div class="flex gap-2 w-full" :class="msg.direction === 'outbound' ? 'flex-row-reverse' : 'flex-row'">
+                        <div 
+                            :class="[
+                                'relative px-5 py-3 shadow-sm group transition-all',
+                                msg.isInternalNote ? 'bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E]' : 
+                                (msg.direction === 'outbound' ? 'bg-[#0056D2] text-white' : 'bg-[#E2E8F0] text-[#1E293B]'),
+                                msg.direction === 'outbound' ? 'rounded-2xl rounded-tr-[4px]' : 'rounded-2xl rounded-tl-[4px]',
+                            ]"
+                            class="max-w-[85%] sm:max-w-[75%]"
+                        >
+                            {{-- Badge Nota Interna --}}
+                            <div x-show="msg.isInternalNote" class="text-[10px] uppercase font-bold text-[#D97706] mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                Solo Interno
                             </div>
-                        </template>
 
-                        {{-- Mensaje saliente (bot/agente) --}}
-                        <template x-if="msg.direction === 'outbound' && !msg.isInternalNote && !msg.isSystemEvent">
-                            <div class="flex justify-end animate-slide-right">
-                                <div class="bubble-outgoing px-4 py-2.5">
-                                    <p class="text-sm leading-relaxed" x-html="msg.content"></p>
-                                    <div class="flex items-center justify-end gap-1.5 mt-1">
-                                        <span class="text-[10px] text-white/70" x-text="msg.time"></span>
-                                        {{-- Ticks de lectura --}}
+                            <p class="text-[14px] leading-relaxed whitespace-pre-wrap" x-text="msg.content"></p>
+                            
+                            {{-- Pie de mensaje --}}
+                            <div class="flex items-center justify-end gap-1.5 mt-1">
+                                <span class="text-[10px]" :class="msg.direction === 'outbound' ? 'text-white/70' : 'text-[#64748B]'" x-text="msg.time"></span>
+                                
+                                {{-- Ticks de lectura (solo outbound) --}}
+                                <template x-if="msg.direction === 'outbound' && !msg.isInternalNote">
+                                    <div class="flex">
                                         <template x-if="msg.status === 'read'">
                                             <svg class="w-4 h-3 text-white/90" viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="2.5">
                                                 <path d="M1 7l5 5L18 1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -163,13 +172,14 @@
             <div class="bg-white border-t border-[#E2E8F0] px-4 py-3 shrink-0">
                 <div class="flex items-center gap-3">
                     {{-- Input --}}
-                    <div class="flex-1 relative">
+                    <div class="flex-1 relative group">
                         <input
                             type="text"
                             x-model="messageInput"
-                            @keydown.enter="sendMessage()"
-                            placeholder="Escribe tu mensaje..."
-                            class="w-full px-4 py-2.5 text-sm bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0056D2]/20 focus:border-[#0056D2] placeholder-[#94A3B8] transition-all pr-12"
+                            @keydown.enter="isInternalNoteMode ? sendInternalNote() : sendMessage()"
+                            :placeholder="isInternalNoteMode ? 'Escribe una nota interna para el equipo...' : 'Escribe tu mensaje...'"
+                            :class="isInternalNoteMode ? 'bg-[#FFFBEB] border-[#FDE68A] focus:ring-[#F59E0B]/10 focus:border-[#F59E0B] placeholder-[#D97706]/70' : 'bg-white border-slate-200 focus:ring-[#0056D2]/10 focus:border-[#0056D2] placeholder-slate-400'"
+                            class="w-full px-5 py-3.5 text-sm border shadow-sm rounded-full focus:outline-none focus:ring-4 transition-all pr-12 group-hover:shadow-md"
                         >
                         {{-- Botón emoji --}}
                         <button class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors">
@@ -179,24 +189,53 @@
                         </button>
                     </div>
 
-                    {{-- Estado IA / Agente --}}
-                    <div class="flex items-center gap-2 text-xs shrink-0" x-show="selectedConversation.isBotActive">
-                        <span class="w-2 h-2 bg-[#10B981] rounded-full animate-pulse-dot"></span>
-                        <span class="text-[#10B981] font-medium whitespace-nowrap" x-text="selectedConversation.botName + ' IA activa'"></span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs shrink-0" x-show="!selectedConversation.isBotActive && selectedConversation.agentName">
-                        <span class="text-[#94A3B8] font-medium whitespace-nowrap" x-text="selectedConversation.agentName + ' está atendiendo'"></span>
+                    {{-- Estado IA / Agente (Dropdown de Asignación) --}}
+                    <div class="relative flex items-center shrink-0" x-data="{ openAssign: false }">
+                        {{-- Bot activo: Click para asignar --}}
+                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 px-3 py-1.5 border border-transparent hover:border-slate-200 rounded-full transition-colors" x-show="selectedConversation.isBotActive" title="Haz clic para asignar">
+                            <span class="w-2 h-2 bg-[#10B981] rounded-full animate-pulse-dot"></span>
+                            <span class="text-[#10B981] font-medium whitespace-nowrap" x-text="selectedConversation.botName + ' respondiendo'"></span>
+                            <svg class="w-3 h-3 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                        
+                        {{-- Humano activo: Click para reasignar o devolver a bot --}}
+                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 px-3 py-1.5 border border-transparent hover:border-slate-200 rounded-full transition-colors" x-show="!selectedConversation.isBotActive && selectedConversation.agentName" title="Haz clic para reasignar">
+                            <span class="text-[#94A3B8] font-medium whitespace-nowrap">Asignado a: <strong class="text-[#1E293B]" x-text="selectedConversation.agentName"></strong></span>
+                            <svg class="w-3 h-3 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+
+                        {{-- Dropdown Menu --}}
+                        <div x-show="openAssign" @click.away="openAssign = false" class="absolute bottom-full mb-2 left-0 w-48 bg-white border border-[#E2E8F0] shadow-xl rounded-xl overflow-hidden z-50">
+                            <div class="p-2 border-b border-[#E2E8F0] bg-slate-50">
+                                <span class="text-xs font-semibold text-[#64748B]">Asignar a...</span>
+                            </div>
+                            <div class="max-h-48 overflow-y-auto custom-scrollbar">
+                                <template x-for="member in teamMembers" :key="member.id">
+                                    <button @click="assignAgent(member.id, member.name); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-[#F1F5F9] flex items-center gap-2 transition-colors">
+                                        <div class="w-6 h-6 rounded-full text-[10px] text-white flex items-center justify-center font-bold" :style="'background-color: ' + member.color" x-text="member.initials"></div>
+                                        <span x-text="member.name" class="text-[#1E293B]"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="p-1 border-t border-[#E2E8F0]" x-show="!selectedConversation.isBotActive">
+                                <button @click="unassignAgent(); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 font-medium flex items-center gap-2 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Devolver al Bot
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Botón Enviar --}}
                     <button
-                        @click="sendMessage()"
-                        class="bg-[#0056D2] hover:bg-[#0047B3] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-colors shrink-0 active:scale-95"
+                        @click="isInternalNoteMode ? sendInternalNote() : sendMessage()"
+                        :class="isInternalNoteMode ? 'bg-[#F59E0B] hover:bg-[#D97706] hover:shadow-[#F59E0B]/30' : 'bg-[#0056D2] hover:bg-[#0047B3] hover:shadow-[#0056D2]/30'"
+                        class="text-white px-6 py-3 rounded-full text-sm font-medium flex items-center gap-2 transition-all shrink-0 active:scale-95 hover:shadow-lg"
                     >
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                         </svg>
-                        Enviar
+                        <span x-text="isInternalNoteMode ? 'Guardar Nota' : 'Enviar'"></span>
                     </button>
                 </div>
 
@@ -209,11 +248,11 @@
                         </svg>
                     </button>
                     {{-- Nota interna --}}
-                    <button @click="showNoteInput = !showNoteInput" class="text-[#94A3B8] hover:text-[#F59E0B] transition-colors p-1 rounded flex items-center gap-1" title="Nota interna">
+                    <button @click="isInternalNoteMode = !isInternalNoteMode" :class="isInternalNoteMode ? 'text-[#F59E0B] bg-[#FFFBEB]' : 'text-[#94A3B8] hover:text-[#F59E0B] hover:bg-slate-50'" class="transition-colors p-1.5 px-2 rounded-lg flex items-center gap-1" title="Nota interna">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                        <span class="text-[10px] font-medium">Nota</span>
+                        <span class="text-[11px] font-medium">Nota Interna</span>
                     </button>
                     {{-- Respuestas rápidas --}}
                     <button class="text-[#94A3B8] hover:text-[#0056D2] transition-colors p-1 rounded flex items-center gap-1" title="Respuestas rápidas">

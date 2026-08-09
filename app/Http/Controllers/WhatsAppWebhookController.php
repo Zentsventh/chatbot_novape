@@ -5,14 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Services\WhatsAppService;
+use App\Models\Tenant;
+use App\Models\Contact;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\ChatbotKnowledge;
+use App\Services\GeminiService;
 
 class WhatsAppWebhookController extends Controller
 {
     protected WhatsAppService $whatsapp;
+    protected GeminiService $gemini;
 
-    public function __construct(WhatsAppService $whatsapp)
+    public function __construct(WhatsAppService $whatsapp, GeminiService $gemini)
     {
         $this->whatsapp = $whatsapp;
+        $this->gemini = $gemini;
     }
 
     /**
@@ -122,46 +130,63 @@ class WhatsAppWebhookController extends Controller
         // ═══════════════════════════════════════════════════════
         // AQUÍ VA LA LÓGICA DE TU SISTEMA OMNICANAL:
         // ═══════════════════════════════════════════════════════
-        //
-        // 1. Buscar o crear el contacto en la tabla `contacts`
-        //    $contact = Contact::firstOrCreate(
-        //        ['tenant_id' => $tenantId, 'phone_number' => $from],
-        //        ['name' => $contactName, 'first_interaction_at' => now()]
-        //    );
-        //
-        // 2. Buscar o crear la conversación en la tabla `conversations`
-        //    $conversation = Conversation::firstOrCreate(
-        //        ['tenant_id' => $tenantId, 'contact_id' => $contact->id, 'channel' => 'whatsapp', 'status' => ...],
-        //        [...]
-        //    );
-        //
-        // 3. Guardar el mensaje en la tabla `messages`
-        //    Message::create([
-        //        'conversation_id' => $conversation->id,
-        //        'contact_id' => $contact->id,
-        //        'channel' => 'whatsapp',
-        //        'direction' => 'inbound',
-        //        'message_type' => $type,
-        //        'content' => $content,
-        //        'external_message_id' => $messageId,
-        //        ...
-        //    ]);
-        //
-        // 4. Disparar evento para actualizar la bandeja en tiempo real
-        //    broadcast(new NewMessageReceived($conversation, $message));
-        //
-        // 5. Si el bot está activo, generar respuesta con IA
-        //    if ($conversation->status === 'bot_active') { ... }
-        //
-        // ═══════════════════════════════════════════════════════
+        // Demo tenant
+        $tenantId = 1;
 
-        // === RESPUESTA AUTOMÁTICA DE PRUEBA ===
-        // (Quitar esto cuando implementes la lógica completa)
-        if ($from && $type === 'text') {
-            $this->whatsapp->sendTextMessage(
-                $from,
-                "✅ Hola {$contactName}, recibimos tu mensaje: \"{$content}\"\n\n🤖 Soy el asistente de Odraude. Pronto un agente te atenderá."
-            );
+        // 1. Buscar o crear el contacto en la tabla `contacts`
+        $contact = Contact::firstOrCreate(
+            ['tenant_id' => $tenantId, 'phone_number' => $from],
+            ['name' => $contactName, 'first_interaction_at' => now()]
+        );
+
+        // 2. Buscar o crear la conversación en la tabla `conversations`
+        $conversation = Conversation::firstOrCreate(
+            ['tenant_id' => $tenantId, 'contact_id' => $contact->id, 'channel' => 'whatsapp'],
+            [
+                'status' => 'bot_active',
+                'priority' => 'normal',
+                'auto_assigned' => false,
+                'message_count' => 0,
+                'unread_count' => 0
+            ]
+        );
+
+        // 3. Guardar el mensaje en la tabla `messages`
+        $inboundMessage = Message::create([
+            'tenant_id' => $tenantId,
+            'conversation_id' => $conversation->id,
+            'contact_id' => $contact->id,
+            'channel' => 'whatsapp',
+            'direction' => 'inbound',
+            'message_type' => $type,
+            'content' => $content,
+            'external_message_id' => $messageId,
+            'status' => 'delivered'
+        ]);
+
+        // Actualizar la conversación
+        $conversation->update([
+            'last_message_at' => now(),
+            'last_message_preview' => substr($content, 0, 50),
+            'unread_count' => $conversation->unread_count + 1,
+            'message_count' => $conversation->message_count + 1,
+        ]);
+
+        // === WEBSOCKETS (FASE 5) ===
+        broadcast(new \App\Events\MessageReceived($inboundMessage))->toOthers();
+        broadcast(new \App\Events\ConversationUpdated($conversation))->toOthers();
+
+        // === RESPUESTA AUTOMÁTICA DEL BOT ===
+        // Solo despacha el trabajo (Job) si el mensaje es de texto y el bot está activo
+        if ($conversation->status === 'bot_active' && $from && $type === 'text') {
+            
+            $settings = ChatbotKnowledge::where('tenant_id', $tenantId)->first();
+            if (!$settings) $settings = ChatbotKnowledge::first();
+
+            if ($settings && $settings->is_bot_active) {
+                // Despachar a la Cola de Trabajos para procesamiento asíncrono
+                \App\Jobs\ProcessWhatsAppMessage::dispatch($inboundMessage->id, $tenantId);
+            }
         }
     }
 
@@ -211,9 +236,10 @@ class WhatsAppWebhookController extends Controller
 
         // ═══════════════════════════════════════════════════════
         // AQUÍ: Actualizar el estado del mensaje en tu BD
-        //
-        // Message::where('external_message_id', $messageId)
-        //     ->update(['status' => $statusValue]);
+        if ($messageId) {
+            Message::where('external_message_id', $messageId)
+                ->update(['status' => $statusValue]);
+        }
         // ═══════════════════════════════════════════════════════
 
         // Si el mensaje falló, registrar el error
