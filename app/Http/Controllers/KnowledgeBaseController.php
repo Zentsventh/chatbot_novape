@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\KnowledgeBase;
 use App\Models\KnowledgeChunk;
 use App\Services\GeminiService;
+use App\Jobs\ProcessKnowledgeChunks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Smalot\PdfParser\Parser;
@@ -17,9 +18,12 @@ class KnowledgeBaseController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = 1; // Default a 1 por ahora
+        $tenantId = $request->user()->tenant_id;
 
-        $knowledge = KnowledgeBase::where('tenant_id', $tenantId)->orderBy('created_at', 'desc')->get();
+        $knowledge = KnowledgeBase::where('tenant_id', $tenantId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(25);
+
         return response()->json($knowledge);
     }
 
@@ -32,7 +36,7 @@ class KnowledgeBaseController extends Controller
             'file' => 'required|file|mimes:pdf|max:10240', // Max 10MB
         ]);
 
-        $tenantId = 1;
+        $tenantId = $request->user()->tenant_id;
         $file = $request->file('file');
 
         try {
@@ -51,15 +55,16 @@ class KnowledgeBaseController extends Controller
                     'size' => $file->getSize(),
                     'pages' => count($pdf->getPages())
                 ],
-                'status' => 'processed'
+                'status' => 'processing'
             ]);
 
-            // Generar Chunks y Vectores
-            $this->processChunks($kb, $text);
+            // Generar Chunks y Vectores de forma asíncrona
+            ProcessKnowledgeChunks::dispatch($kb->id, $text);
 
-            return response()->json(['success' => true, 'data' => $kb]);
+            return response()->json(['success' => true, 'data' => $kb], 201);
 
         } catch (\Exception $e) {
+            Log::error('KnowledgeBase upload failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -70,11 +75,11 @@ class KnowledgeBaseController extends Controller
     public function storeUrl(Request $request)
     {
         $request->validate([
-            'url' => 'required|url',
+            'url' => 'required|url|max:2000',
         ]);
 
-        $tenantId = 1;
-        $url = $request->url;
+        $tenantId = $request->user()->tenant_id;
+        $url = $request->input('url');
 
         try {
             $response = Http::timeout(10)->get($url);
@@ -85,9 +90,9 @@ class KnowledgeBaseController extends Controller
 
             $html = $response->body();
             
-            // Extracción muy rudimentaria de texto desde HTML
+            // Extracción de texto desde HTML
             $text = strip_tags(preg_replace('#<script(.*?)>(.*?)</script>#is', '', $html));
-            $text = preg_replace('/\s+/', ' ', $text); // Limpiar espacios en blanco
+            $text = preg_replace('/\s+/', ' ', $text);
 
             $kb = KnowledgeBase::create([
                 'tenant_id' => $tenantId,
@@ -97,15 +102,16 @@ class KnowledgeBaseController extends Controller
                 'metadata' => [
                     'length' => strlen($text)
                 ],
-                'status' => 'processed'
+                'status' => 'processing'
             ]);
 
-            // Generar Chunks y Vectores
-            $this->processChunks($kb, $text);
+            // Generar Chunks y Vectores de forma asíncrona
+            ProcessKnowledgeChunks::dispatch($kb->id, $text);
 
-            return response()->json(['success' => true, 'data' => $kb]);
+            return response()->json(['success' => true, 'data' => $kb], 201);
 
         } catch (\Exception $e) {
+            Log::error('KnowledgeBase URL failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -113,60 +119,16 @@ class KnowledgeBaseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $kb = KnowledgeBase::findOrFail($id);
+        $tenantId = $request->user()->tenant_id;
+
+        $kb = KnowledgeBase::where('tenant_id', $tenantId)->findOrFail($id);
+
+        // Borrar chunks asociados
+        KnowledgeChunk::where('knowledge_base_id', $kb->id)->delete();
         $kb->delete();
 
         return response()->json(['success' => true]);
-    }
-
-    /**
-     * Process text into chunks and generate embeddings.
-     */
-    private function processChunks(KnowledgeBase $kb, string $text)
-    {
-        $gemini = app(GeminiService::class);
-        
-        // Simple chunking strategy: split by double newlines (paragraphs)
-        $paragraphs = preg_split('/\n\s*\n/', $text);
-        
-        // Combine small paragraphs to aim for ~500-1000 character chunks
-        $chunks = [];
-        $currentChunk = '';
-        
-        foreach ($paragraphs as $para) {
-            $para = trim($para);
-            if (empty($para)) continue;
-
-            if (strlen($currentChunk) + strlen($para) > 1000) {
-                if (!empty($currentChunk)) {
-                    $chunks[] = $currentChunk;
-                }
-                $currentChunk = $para;
-            } else {
-                $currentChunk .= (empty($currentChunk) ? '' : "\n\n") . $para;
-            }
-        }
-        if (!empty($currentChunk)) {
-            $chunks[] = $currentChunk;
-        }
-
-        // Generate embedding for each chunk and save
-        foreach ($chunks as $chunkText) {
-            if (strlen($chunkText) < 10) continue; // Skip very small meaningless chunks
-
-            $embedding = $gemini->embedText($chunkText);
-            
-            if ($embedding) {
-                KnowledgeChunk::create([
-                    'knowledge_base_id' => $kb->id,
-                    'content' => $chunkText,
-                    'embedding' => $embedding
-                ]);
-            } else {
-                Log::warning('Failed to generate embedding for chunk', ['kb_id' => $kb->id]);
-            }
-        }
     }
 }

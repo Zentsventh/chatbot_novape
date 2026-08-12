@@ -1,19 +1,19 @@
 {{-- Panel de Lista de Conversaciones --}}
-<div class="w-[280px] bg-white border-r border-[#E2E8F0] flex flex-col shrink-0">
+<div class="w-[300px] bg-[#011B3D]/80 backdrop-blur-xl border border-white/20 rounded-[32px] flex flex-col shrink-0 z-10 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8)] h-full overflow-hidden py-4">
     {{-- Tabs: Clientes / Equipo --}}
     <div class="px-4 pt-3 pb-0">
         <div class="flex items-center gap-4 mb-3">
             <button
                 @click="listTab = 'clientes'"
-                :class="listTab === 'clientes' ? 'text-[#1E293B] font-semibold' : 'text-[#94A3B8] hover:text-[#64748B]'"
+                :class="listTab === 'clientes' ? 'text-white font-bold' : 'text-white/50 hover:text-white/80'"
                 class="text-sm transition-colors flex items-center gap-1.5"
             >
                 Clientes
-                <span class="badge bg-[#0056D2] text-white" x-text="conversations.length"></span>
+                <span class="badge bg-[#00CEFF] text-[#011B3D]" x-text="conversations.length"></span>
             </button>
             <button
                 @click="listTab = 'equipo'"
-                :class="listTab === 'equipo' ? 'text-[#1E293B] font-semibold' : 'text-[#94A3B8] hover:text-[#64748B]'"
+                :class="listTab === 'equipo' ? 'text-white font-bold' : 'text-white/50 hover:text-white/80'"
                 class="text-sm transition-colors"
             >
                 Equipo
@@ -24,14 +24,14 @@
     {{-- Buscador --}}
     <div class="px-4 mb-2">
         <div class="relative group">
-            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8] group-hover:text-[#64748B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-hover:text-white/70 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
                 type="text"
                 placeholder="Buscar en chats..."
                 x-model="searchQuery"
-                class="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#0056D2]/10 focus:border-[#0056D2] placeholder-slate-400 transition-all hover:bg-white"
+                class="w-full pl-9 pr-4 py-2 text-sm bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#00CEFF] focus:border-[#00CEFF] text-white placeholder-white/50 transition-all hover:bg-black/40 shadow-inner"
             >
         </div>
     </div>
@@ -43,8 +43,8 @@
                 <div
                     @click="selectConversation(conv)"
                     :class="[
-                        'conversation-item px-3 py-3 rounded-xl flex items-center gap-3 transition-all',
-                        selectedConversation && selectedConversation.id === conv.id ? 'bg-[#EFF6FF] shadow-sm border border-[#0056D2]/10 ring-1 ring-[#0056D2]/5' : 'hover:bg-slate-50 border border-transparent hover:border-slate-100',
+                        'conversation-item px-3 py-3 rounded-xl flex items-center gap-3 transition-all cursor-pointer',
+                        selectedConversation && selectedConversation.id === conv.id ? 'bg-gradient-to-r from-[#0665E0]/40 to-[#02449E]/40 shadow-sm border border-[#00CEFF]/30 ring-1 ring-[#00CEFF]/20' : 'hover:bg-white/10 border border-transparent hover:border-white/5',
                         conv.priority === 'urgent' ? 'border-l-4 border-l-[#EF4444]' : '',
                         conv.priority === 'high' ? 'border-l-4 border-l-[#F59E0B]' : ''
                     ]"
@@ -52,13 +52,13 @@
                 {{-- Avatar --}}
                 <div class="relative shrink-0">
                     <div
-                        class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                        class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-inner"
                         :style="'background-color:' + conv.avatarColor"
                         x-text="conv.initials"
                     ></div>
                     {{-- Indicador de canal --}}
                     <div
-                        class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center bg-white shadow-sm"
+                        class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center bg-[#011B3D] shadow-sm"
                         x-show="conv.channel"
                     >
                         <template x-if="conv.channel === 'whatsapp'">
@@ -82,21 +82,21 @@
                 {{-- Info --}}
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-[#1E293B] truncate" x-text="conv.contactName"></span>
-                        <span class="text-[11px] text-[#94A3B8] shrink-0 ml-2" x-text="conv.lastMessageTime"></span>
+                        <span class="text-sm font-bold text-white truncate" x-text="conv.contactName"></span>
+                        <span class="text-[10px] font-medium text-white/50 shrink-0 ml-2" x-text="conv.lastMessageTime"></span>
                     </div>
-                    <p class="text-xs text-[#64748B] truncate mt-0.5" x-text="conv.lastMessagePreview"></p>
+                    <p class="text-xs text-white/60 truncate mt-0.5" x-text="conv.lastMessagePreview"></p>
                     {{-- Tags --}}
                     <div class="flex items-center gap-1 mt-1" x-show="conv.tags && conv.tags.length > 0">
                         <template x-for="tag in (conv.tags || [])" :key="tag.name">
-                            <span class="tag" :style="'background-color:' + tag.color + '20; color:' + tag.color" x-text="tag.name"></span>
+                            <span class="tag text-[9px] uppercase font-bold tracking-wide border" :style="'background-color:' + tag.color + '20; color:' + tag.color + '; border-color:' + tag.color + '40'" x-text="tag.name"></span>
                         </template>
                     </div>
                 </div>
 
                 {{-- Badge no leídos --}}
                 <div x-show="conv.unreadCount > 0" class="shrink-0">
-                    <span class="badge bg-[#0056D2] text-white shadow-sm ring-2 ring-white" x-text="conv.unreadCount"></span>
+                    <span class="badge bg-[#00CEFF] text-[#011B3D] shadow-[0_0_8px_rgba(0,206,255,0.6)] font-bold" x-text="conv.unreadCount"></span>
                 </div>
             </div>
             </div>
@@ -106,16 +106,16 @@
     {{-- Tab Equipo --}}
     <div class="flex-1 overflow-y-auto custom-scrollbar p-4" x-show="listTab === 'equipo'">
         <template x-for="member in teamMembers" :key="member.id">
-            <div class="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-[#F8FAFC] cursor-pointer transition-colors">
+            <div class="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-white/10 cursor-pointer transition-colors border border-transparent hover:border-white/5">
                 <div class="relative">
-                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold" :style="'background-color:' + member.color" x-text="member.initials"></div>
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white" :class="member.isOnline ? 'bg-[#10B981]' : 'bg-[#94A3B8]'"></div>
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-inner" :style="'background-color:' + member.color" x-text="member.initials"></div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#00122A]" :class="member.isOnline ? 'bg-[#10B981] shadow-[0_0_5px_#10B981]' : 'bg-[#94A3B8]'"></div>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <span class="text-sm font-medium text-[#1E293B] truncate block" x-text="member.name"></span>
-                    <span class="text-[11px] text-[#94A3B8]" x-text="member.role"></span>
+                    <span class="text-sm font-bold text-white truncate block" x-text="member.name"></span>
+                    <span class="text-[10px] text-white/50 uppercase tracking-widest" x-text="member.role"></span>
                 </div>
-                <span class="text-[11px] text-[#94A3B8]" x-show="member.activeChats > 0" x-text="member.activeChats + ' chats'"></span>
+                <span class="text-[10px] text-[#00CEFF] font-bold bg-[#00CEFF]/10 px-1.5 py-0.5 rounded" x-show="member.activeChats > 0" x-text="member.activeChats + ' chats'"></span>
             </div>
         </template>
     </div>

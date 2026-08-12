@@ -33,23 +33,28 @@ class MessageReceived implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tenant.' . $this->message->tenant_id),
+            new PrivateChannel('tenant.' . $this->message->tenant_id),
         ];
     }
 
     public function broadcastWith(): array
     {
         // Extract mentions
-        preg_match_all('/@([a-zA-Z0-9_]+)/', $this->message->content, $matches);
+        preg_match_all('/@([a-zA-Z0-9_]+)/', $this->message->content ?? '', $matches);
         $mentions = $matches[1] ?? [];
 
         return [
             'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
-            'content' => $this->message->content,
             'direction' => $this->message->direction,
+            'messageType' => $this->message->message_type,
+            'content' => $this->message->content,
+            'mediaUrl' => $this->message->media_url,
+            'mediaMimeType' => $this->message->media_mime_type,
             'isInternalNote' => (bool)$this->message->is_internal_note,
             'mentions' => $mentions,
+            'time' => $this->message->created_at->format('H:i'),
+            'status' => $this->message->status,
             'created_at' => $this->message->created_at->toIso8601String(),
         ];
     }

@@ -72,7 +72,7 @@ class ProcessWhatsAppMessage implements ShouldQueue
                 $systemPrompt = $settings->system_prompt ?? 'Eres un asistente útil y amable de la empresa Novape.';
                 
                 // === RAG: BÚSQUEDA EN BASE DE DATOS VECTORIAL ===
-                $userEmbedding = $gemini->embedText($incomingMessage->content);
+                $userEmbedding = $gemini->embedText($incomingMessage->content, $this->tenantId);
                 
                 if ($userEmbedding) {
                     $chunks = \App\Models\KnowledgeChunk::whereHas('knowledgeBase', function($q) {
@@ -108,7 +108,7 @@ class ProcessWhatsAppMessage implements ShouldQueue
                 $temperature = $settings->ai_temperature ?? 0.7;
 
                 // Llamar a la API de Gemini
-                $aiResponseData = $gemini->generateResponse($systemPrompt, $history, $incomingMessage->content, $temperature);
+                $aiResponseData = $gemini->generateResponse($systemPrompt, $history, $incomingMessage->content, $temperature, $this->tenantId);
 
                 $contact = $conversation->contact;
                 $from = $contact->phone_number;

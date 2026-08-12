@@ -3,7 +3,7 @@
 @section('title', 'Bandeja Omnicanal — Smart AI Hosting Solutions')
 
 @section('content')
-<div class="flex-1 flex overflow-hidden w-full h-full" x-data="inboxApp()" x-init="init()">
+<div class="flex-1 flex overflow-hidden w-full h-full gap-6" x-data="inboxApp()" x-init="init()">
     {{-- Lista de Conversaciones --}}
     @include('inbox.partials.conversation-list')
 
@@ -36,6 +36,7 @@ function inboxApp() {
         
         // Datos dinámicos
         conversations: [],
+        cannedResponses: [],
         pollingInterval: null,
 
         // Datos reales - Equipo (Cargados desde la BD)
@@ -53,7 +54,6 @@ function inboxApp() {
             @endforeach
         ],
 
-        // Computed
         get filteredConversations() {
             if (!this.searchQuery) return this.conversations;
             const q = this.searchQuery.toLowerCase();
@@ -61,6 +61,20 @@ function inboxApp() {
                 c.contactName.toLowerCase().includes(q) ||
                 (c.lastMessagePreview && c.lastMessagePreview.toLowerCase().includes(q))
             );
+        },
+
+        get showCannedResponses() {
+            return this.messageInput.startsWith('/') && this.filteredCannedResponses.length > 0;
+        },
+
+        get filteredCannedResponses() {
+            if (!this.messageInput.startsWith('/')) return [];
+            const query = this.messageInput.slice(1).toLowerCase();
+            return this.cannedResponses.filter(cr => 
+                (cr.shortcut && cr.shortcut.toLowerCase().includes(query)) ||
+                cr.title.toLowerCase().includes(query) ||
+                cr.content.toLowerCase().includes(query)
+            ).slice(0, 5); // Max 5 results
         },
 
         get callTimer() {
@@ -72,13 +86,14 @@ function inboxApp() {
         // Métodos
         init() {
             this.fetchConversations();
+            this.fetchCannedResponses();
             this.setupWebSockets();
         },
         
         setupWebSockets() {
-            const tenantId = 1; // Demo tenant
+            const tenantId = {{ auth()->user()->tenant_id ?? 1 }};
             if (typeof window.Echo !== 'undefined') {
-                window.Echo.channel(`tenant.${tenantId}`)
+                window.Echo.private(`tenant.${tenantId}`)
                     .listen('MessageReceived', (e) => {
                         console.log('MessageReceived event:', e);
                         
@@ -98,6 +113,15 @@ function inboxApp() {
                     .listen('ConversationUpdated', (e) => {
                         console.log('ConversationUpdated event:', e);
                         this.fetchConversations();
+                    })
+                    .listen('MessageStatusUpdated', (e) => {
+                        console.log('MessageStatusUpdated event:', e);
+                        if (this.selectedConversation && this.selectedConversation.id === e.conversation_id) {
+                            const msg = this.selectedConversation.messages.find(m => m.id === e.id);
+                            if (msg) {
+                                msg.status = e.status;
+                            }
+                        }
                     });
             } else {
                 console.warn("Laravel Echo no está disponible.");
@@ -106,22 +130,47 @@ function inboxApp() {
 
         async fetchConversations() {
             try {
-                const res = await fetch('/api/inbox/conversations');
+                const res = await fetch('/api/inbox/conversations', {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
                 const data = await res.json();
-                this.conversations = data;
+                this.conversations = data.data || data;
             } catch(e) {
                 console.error(e);
             }
         },
 
+        async fetchCannedResponses() {
+            try {
+                const res = await fetch('/api/canned-responses', {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
+                const data = await res.json();
+                this.cannedResponses = data;
+            } catch(e) {
+                console.error(e);
+            }
+        },
+
+        insertCannedResponse(cr) {
+            this.messageInput = cr.content;
+            this.$refs.messageInput.focus();
+        },
+
         async fetchMessages(conv) {
             try {
-                const res = await fetch(`/api/inbox/conversations/${conv.id}/messages`);
+                const res = await fetch(`/api/inbox/conversations/${conv.id}/messages`, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
                 const data = await res.json();
+                const messages = data.data || data;
                 // Actualizar mensajes sin perder referencia (para no parpadear)
                 if(!conv.messages) conv.messages = [];
-                if (JSON.stringify(conv.messages) !== JSON.stringify(data)) {
-                    conv.messages = data;
+                if (JSON.stringify(conv.messages) !== JSON.stringify(messages)) {
+                    conv.messages = messages;
                     // Scroll al fondo si hubo nuevos
                     this.$nextTick(() => {
                         const chatContainer = document.getElementById('chat-messages');
@@ -164,7 +213,8 @@ function inboxApp() {
             try {
                 const res = await fetch(`/api/inbox/conversations/${this.selectedConversation.id}/messages`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify({ content: content })
                 });
                 const data = await res.json();
@@ -186,7 +236,8 @@ function inboxApp() {
             try {
                 const res = await fetch(`/api/inbox/conversations/${this.selectedConversation.id}/assign`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await res.json();
@@ -210,7 +261,8 @@ function inboxApp() {
             try {
                 const res = await fetch(`/api/inbox/conversations/${this.selectedConversation.id}/unassign`, {
                     method: 'POST',
-                    headers: { 'Accept': 'application/json' }
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -244,7 +296,8 @@ function inboxApp() {
             try {
                 const res = await fetch(`/api/inbox/conversations/${this.selectedConversation.id}/notes`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify({ content: content })
                 });
                 const data = await res.json();

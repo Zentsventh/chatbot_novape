@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\ApiUsageLog;
 
 class GeminiService
 {
@@ -24,7 +25,7 @@ class GeminiService
      * @param float $temperature The temperature to use (0.0 to 1.0)
      * @return array|string The generated response or function call
      */
-    public function generateResponse(string $systemPrompt, array $history, string $newMessage, float $temperature = 0.7): array|string
+    public function generateResponse(string $systemPrompt, array $history, string $newMessage, float $temperature = 0.7, ?int $tenantId = null): array|string
     {
         $contents = [];
 
@@ -78,10 +79,28 @@ class GeminiService
         $url = $this->baseUrl . 'gemini-flash-latest:generateContent?key=' . $this->apiKey;
 
         try {
+            $startTime = microtime(true);
             $response = Http::post($url, $payload);
+            $durationMs = round((microtime(true) - $startTime) * 1000);
 
             if ($response->successful()) {
                 $data = $response->json();
+                
+                if ($tenantId && isset($data['usageMetadata'])) {
+                    ApiUsageLog::create([
+                        'tenant_id' => $tenantId,
+                        'service' => 'gemini',
+                        'endpoint' => 'generateContent',
+                        'tokens_input' => $data['usageMetadata']['promptTokenCount'] ?? 0,
+                        'tokens_output' => $data['usageMetadata']['candidatesTokenCount'] ?? 0,
+                        'tokens_total' => $data['usageMetadata']['totalTokenCount'] ?? 0,
+                        'estimated_cost' => 0, // calculate if needed
+                        'response_time_ms' => $durationMs,
+                        'status_code' => $response->status(),
+                        'is_successful' => true,
+                        'created_at' => now(),
+                    ]);
+                }
                 
                 // Check if it's a function call
                 if (isset($data['candidates'][0]['content']['parts'][0]['functionCall'])) {
@@ -113,7 +132,7 @@ class GeminiService
      * @param string $text
      * @return array|null The embedding vector (array of floats) or null on error
      */
-    public function embedText(string $text): ?array
+    public function embedText(string $text, ?int $tenantId = null): ?array
     {
         $url = $this->baseUrl . 'text-embedding-004:embedContent?key=' . $this->apiKey;
 
@@ -127,10 +146,25 @@ class GeminiService
         ];
 
         try {
+            $startTime = microtime(true);
             $response = Http::post($url, $payload);
+            $durationMs = round((microtime(true) - $startTime) * 1000);
 
             if ($response->successful()) {
                 $data = $response->json();
+                
+                if ($tenantId) {
+                    ApiUsageLog::create([
+                        'tenant_id' => $tenantId,
+                        'service' => 'gemini',
+                        'endpoint' => 'embedContent',
+                        'tokens_total' => count(explode(' ', $text)) * 1.5, // Approx tokens for embedding
+                        'response_time_ms' => $durationMs,
+                        'status_code' => $response->status(),
+                        'is_successful' => true,
+                        'created_at' => now(),
+                    ]);
+                }
                 if (isset($data['embedding']['values'])) {
                     return $data['embedding']['values'];
                 }

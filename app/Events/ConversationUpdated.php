@@ -33,7 +33,7 @@ class ConversationUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('tenant.' . $this->conversation->tenant_id),
+            new PrivateChannel('tenant.' . $this->conversation->tenant_id),
         ];
     }
 
@@ -45,6 +45,8 @@ class ConversationUpdated implements ShouldBroadcast
             'unread_count' => $this->conversation->unread_count,
             'last_message_preview' => $this->conversation->last_message_preview,
             'last_message_at' => $this->conversation->last_message_at?->toIso8601String(),
+            'assigned_user_id' => $this->conversation->assigned_user_id,
+            'priority' => $this->conversation->priority,
         ];
     }
 }

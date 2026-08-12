@@ -3,24 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\WhatsAppService;
 use App\Models\Tenant;
+use App\Models\TenantChannel;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\ChatbotKnowledge;
 use App\Services\GeminiService;
+use App\Services\WhatsAppMediaService;
 
 class WhatsAppWebhookController extends Controller
 {
     protected WhatsAppService $whatsapp;
     protected GeminiService $gemini;
+    protected WhatsAppMediaService $mediaService;
 
-    public function __construct(WhatsAppService $whatsapp, GeminiService $gemini)
+    public function __construct(WhatsAppService $whatsapp, GeminiService $gemini, WhatsAppMediaService $mediaService)
     {
         $this->whatsapp = $whatsapp;
         $this->gemini = $gemini;
+        $this->mediaService = $mediaService;
     }
 
     /**
@@ -128,10 +133,33 @@ class WhatsAppWebhookController extends Controller
         }
 
         // ═══════════════════════════════════════════════════════
-        // AQUÍ VA LA LÓGICA DE TU SISTEMA OMNICANAL:
+        // RESOLVER TENANT DINÁMICAMENTE
         // ═══════════════════════════════════════════════════════
-        // Demo tenant
-        $tenantId = 1;
+        $tenantChannel = TenantChannel::where('phone_number_id', $phoneNumberId)
+            ->where('channel', 'whatsapp')
+            ->where('is_active', true)
+            ->first();
+
+        $tenantId = $tenantChannel->tenant_id ?? 1; // Fallback a 1 si no se encuentra
+        
+        // Descargar media si aplica
+        $mediaUrl = null;
+        $mediaMimeType = null;
+        $mediaFileSize = null;
+
+        if (in_array($type, ['image', 'audio', 'document', 'video', 'sticker'])) {
+            $mediaObject = $message[$type] ?? [];
+            $mediaId = $mediaObject['id'] ?? null;
+            $mediaMimeType = $mediaObject['mime_type'] ?? null;
+            
+            // Meta a veces no envía el tamaño en todos los tipos
+            $mediaFileSize = $mediaObject['file_size'] ?? null;
+
+            if ($mediaId && $tenantChannel && $tenantChannel->access_token) {
+                // Descargar archivo a Storage
+                $mediaUrl = $this->mediaService->downloadAndStoreMedia($mediaId, $tenantChannel->access_token, $mediaMimeType ?? 'application/octet-stream');
+            }
+        }
 
         // 1. Buscar o crear el contacto en la tabla `contacts`
         $contact = Contact::firstOrCreate(
@@ -160,17 +188,21 @@ class WhatsAppWebhookController extends Controller
             'direction' => 'inbound',
             'message_type' => $type,
             'content' => $content,
+            'media_url' => $mediaUrl,
+            'media_mime_type' => $mediaMimeType,
+            'media_file_size' => $mediaFileSize,
             'external_message_id' => $messageId,
             'status' => 'delivered'
         ]);
 
-        // Actualizar la conversación
+        // Actualizar la conversación (usando DB::raw para evitar race conditions)
         $conversation->update([
             'last_message_at' => now(),
             'last_message_preview' => substr($content, 0, 50),
-            'unread_count' => $conversation->unread_count + 1,
-            'message_count' => $conversation->message_count + 1,
+            'unread_count' => DB::raw('unread_count + 1'),
+            'message_count' => DB::raw('message_count + 1'),
         ]);
+        $conversation->refresh(); // Recargar para tener valores actualizados
 
         // === WEBSOCKETS (FASE 5) ===
         broadcast(new \App\Events\MessageReceived($inboundMessage))->toOthers();
@@ -237,8 +269,11 @@ class WhatsAppWebhookController extends Controller
         // ═══════════════════════════════════════════════════════
         // AQUÍ: Actualizar el estado del mensaje en tu BD
         if ($messageId) {
-            Message::where('external_message_id', $messageId)
-                ->update(['status' => $statusValue]);
+            $msg = Message::where('external_message_id', $messageId)->first();
+            if ($msg) {
+                $msg->update(['status' => $statusValue]);
+                broadcast(new \App\Events\MessageStatusUpdated($msg))->toOthers();
+            }
         }
         // ═══════════════════════════════════════════════════════
 

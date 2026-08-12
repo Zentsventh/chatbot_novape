@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\ProcessMessengerMessage;
+use App\Jobs\ProcessInstagramMessage;
 
 class WebhookController extends Controller
 {
     /**
-     * Token de validación (debe ser el mismo que pongamos en Meta Developer)
+     * Token de validación — leído desde config/services.php
      */
-    private $verifyToken = 'smart_ai_token_2026';
+    private function getVerifyToken(): string
+    {
+        return config('services.whatsapp.verify_token', 'smart_ai_token_2026');
+    }
 
     /**
      * Verificación del Webhook (Petición GET desde Meta)
@@ -24,7 +29,7 @@ class WebhookController extends Controller
         // Verifica si el modo y el token están presentes
         if ($mode && $token) {
             // Verifica que el modo sea 'subscribe' y el token coincida
-            if ($mode === 'subscribe' && $token === $this->verifyToken) {
+            if ($mode === 'subscribe' && $token === $this->getVerifyToken()) {
                 Log::info('WEBHOOK_VERIFIED');
                 return response($challenge, 200);
             } else {
@@ -62,6 +67,8 @@ class WebhookController extends Controller
                             'sender_id' => $senderPsid,
                             'message_text' => $webhookEvent['message']['text'] ?? 'Adjunto'
                         ]);
+                        
+                        ProcessMessengerMessage::dispatch($webhookEvent);
                     }
                 }
             }
@@ -71,6 +78,43 @@ class WebhookController extends Controller
         }
 
         // Devolver '404 Not Found' si el evento no proviene de una página ('page')
+        return response('Not Found', 404);
+    }
+
+    /**
+     * Verificación del Webhook de Instagram
+     */
+    public function verifyInstagram(Request $request)
+    {
+        return $this->verifyMessenger($request); // Usa la misma lógica
+    }
+
+    /**
+     * Recepción de mensajes de Instagram
+     */
+    public function handleInstagram(Request $request)
+    {
+        $body = $request->all();
+
+        if (isset($body['object']) && $body['object'] === 'instagram') {
+            foreach ($body['entry'] as $entry) {
+                $webhookEvent = $entry['messaging'][0] ?? null;
+                
+                if ($webhookEvent) {
+                    $senderId = $webhookEvent['sender']['id'] ?? null;
+                    
+                    if (isset($webhookEvent['message'])) {
+                        Log::info('NUEVO_MENSAJE_INSTAGRAM', [
+                            'sender_id' => $senderId,
+                            'message_text' => $webhookEvent['message']['text'] ?? 'Adjunto'
+                        ]);
+                        
+                        ProcessInstagramMessage::dispatch($webhookEvent);
+                    }
+                }
+            }
+            return response('EVENT_RECEIVED', 200);
+        }
         return response('Not Found', 404);
     }
 }

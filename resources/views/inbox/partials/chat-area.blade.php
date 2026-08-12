@@ -1,11 +1,11 @@
 {{-- Área de Chat Central --}}
-<div class="flex-1 flex flex-col bg-[#F8FAFC] min-w-0">
+<div class="flex-1 flex flex-col backdrop-blur-xl border border-white/20 rounded-[32px] shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8)] min-w-0 h-full overflow-hidden" style="background: linear-gradient(180deg, rgba(6,101,224,0.8) 0%, rgba(2,68,158,0.8) 100%);">
     {{-- Tabs de Canal (Header) --}}
-    <div class="bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-1 flex items-center gap-2 shrink-0 sticky top-0 z-10 shadow-sm">
+    <div class="bg-black/10 border-b border-white/10 px-4 py-1 flex items-center gap-2 shrink-0 sticky top-0 z-10">
         {{-- WhatsApp --}}
         <button
             @click="activeChannel = 'whatsapp'"
-            :class="activeChannel === 'whatsapp' ? 'active text-[#1E293B] font-medium' : 'text-[#64748B] hover:text-[#1E293B]'"
+            :class="activeChannel === 'whatsapp' ? 'active text-white font-bold' : 'text-white/50 hover:text-white'"
             class="channel-tab flex items-center gap-2 px-4 py-3 text-sm transition-colors"
         >
             <svg class="w-4 h-4 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor">
@@ -17,7 +17,7 @@
         {{-- Instagram --}}
         <button
             @click="activeChannel = 'instagram'"
-            :class="activeChannel === 'instagram' ? 'active text-[#1E293B] font-medium' : 'text-[#64748B] hover:text-[#1E293B]'"
+            :class="activeChannel === 'instagram' ? 'active text-white font-bold' : 'text-white/50 hover:text-white'"
             class="channel-tab flex items-center gap-2 px-4 py-3 text-sm transition-colors"
         >
             <svg class="w-4 h-4 text-[#E1306C]" viewBox="0 0 24 24" fill="currentColor">
@@ -29,7 +29,7 @@
         {{-- Messenger --}}
         <button
             @click="activeChannel = 'messenger'"
-            :class="activeChannel === 'messenger' ? 'active text-[#1E293B] font-medium' : 'text-[#64748B] hover:text-[#1E293B]'"
+            :class="activeChannel === 'messenger' ? 'active text-white font-bold' : 'text-white/50 hover:text-white'"
             class="channel-tab flex items-center gap-2 px-4 py-3 text-sm transition-colors"
         >
             <svg class="w-4 h-4 text-[#0084FF]" viewBox="0 0 24 24" fill="currentColor">
@@ -39,7 +39,7 @@
         </button>
 
         {{-- Agregar canal --}}
-        <button class="channel-tab flex items-center justify-center w-8 h-8 rounded-full text-[#94A3B8] hover:text-[#64748B] hover:bg-[#F1F5F9] transition-colors ml-1">
+        <button class="channel-tab flex items-center justify-center w-8 h-8 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors ml-1">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -49,7 +49,7 @@
         <div class="flex-1"></div>
 
         {{-- Actividades --}}
-        <button class="flex items-center gap-2 px-3 py-2 text-sm text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] rounded-lg transition-colors">
+        <button class="flex items-center gap-2 px-3 py-2 text-sm text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -61,13 +61,13 @@
     <template x-if="!selectedConversation">
         <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
-                <div class="w-20 h-20 mx-auto mb-4 bg-[#EFF6FF] rounded-full flex items-center justify-center">
-                    <svg class="w-10 h-10 text-[#0056D2]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <div class="w-20 h-20 mx-auto mb-4 bg-[#00CEFF]/10 border border-[#00CEFF]/20 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,206,255,0.2)]">
+                    <svg class="w-10 h-10 text-[#00CEFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-[#1E293B] mb-1">Selecciona una conversación</h3>
-                <p class="text-sm text-[#94A3B8]">Elige un cliente de la lista para ver sus mensajes</p>
+                <h3 class="text-lg font-bold text-white mb-1">Selecciona una conversación</h3>
+                <p class="text-sm text-white/60">Elige un cliente de la lista para ver sus mensajes</p>
             </div>
         </div>
     </template>
@@ -77,7 +77,7 @@
         <div class="flex-1 flex flex-col min-h-0">
             {{-- Notificación de evento (lead de Meta, etc.) --}}
             <div class="px-4 py-2 text-center" x-show="selectedConversation.leadSource">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#F0FDF4] text-[#166534] text-xs font-medium rounded-full animate-fade-in">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-xs font-bold rounded-full animate-fade-in shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                     <span class="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse-dot"></span>
                     <span x-text="selectedConversation.leadSource"></span>
                 </div>
@@ -90,14 +90,14 @@
                         {{-- Nota interna --}}
                         <template x-if="msg.isInternalNote">
                             <div class="flex justify-center animate-fade-in">
-                                <div class="bubble-internal-note px-4 py-2.5">
+                                <div class="bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-white px-4 py-2.5 rounded-xl backdrop-blur-sm shadow-[0_0_10px_rgba(245,158,11,0.1)]">
                                     <div class="flex items-center gap-2 mb-1">
                                         <svg class="w-3.5 h-3.5 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
-                                        <span class="text-xs font-semibold" x-text="msg.agentName"></span>
+                                        <span class="text-xs font-bold text-[#F59E0B]" x-text="msg.agentName"></span>
                                     </div>
-                                    <p class="text-sm" x-text="msg.content"></p>
+                                    <p class="text-sm text-white/90 font-medium" x-text="msg.content"></p>
                                 </div>
                             </div>
                         </template>
@@ -105,11 +105,11 @@
                         {{-- Evento del sistema (asignación, etc.) --}}
                         <template x-if="msg.isSystemEvent">
                             <div class="flex justify-center animate-fade-in">
-                                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F1F5F9] text-[#64748B] text-xs rounded-full">
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-black/20 border border-white/5 text-white/60 text-xs rounded-full">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    <span x-text="msg.content"></span>
+                                    <span class="font-medium" x-text="msg.content"></span>
                                 </div>
                             </div>
                         </template>
@@ -119,26 +119,46 @@
                     <div class="flex gap-2 w-full" :class="msg.direction === 'outbound' ? 'flex-row-reverse' : 'flex-row'">
                         <div 
                             :class="[
-                                'relative px-5 py-3 shadow-sm group transition-all',
-                                msg.isInternalNote ? 'bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E]' : 
-                                (msg.direction === 'outbound' ? 'bg-[#0056D2] text-white' : 'bg-[#E2E8F0] text-[#1E293B]'),
+                                'relative px-5 py-3 shadow-sm group transition-all backdrop-blur-md',
+                                msg.isInternalNote ? 'bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-white' : 
+                                (msg.direction === 'outbound' ? 'bg-gradient-to-r from-[#0665E0] to-[#02449E] text-white shadow-[0_5px_15px_rgba(6,101,224,0.4)] border border-[#0665E0]/50' : 'bg-[#002B6A]/80 text-white border border-white/10 shadow-[0_5px_15px_rgba(0,0,0,0.3)]'),
                                 msg.direction === 'outbound' ? 'rounded-2xl rounded-tr-[4px]' : 'rounded-2xl rounded-tl-[4px]',
                             ]"
                             class="max-w-[85%] sm:max-w-[75%]"
                         >
                             {{-- Badge Nota Interna --}}
-                            <div x-show="msg.isInternalNote" class="text-[10px] uppercase font-bold text-[#D97706] mb-1 flex items-center gap-1">
+                            <div x-show="msg.isInternalNote" class="text-[10px] uppercase font-bold text-[#F59E0B] mb-1 flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                                 Solo Interno
                             </div>
 
-                            <p class="text-[14px] leading-relaxed whitespace-pre-wrap" x-text="msg.content"></p>
-                            
+                            {{-- Renderizado Multimedia --}}
+                            <template x-if="msg.mediaUrl">
+                                <div class="mb-2 overflow-hidden rounded-xl">
+                                    <template x-if="msg.messageType === 'image' || msg.messageType === 'sticker'">
+                                        <img :src="msg.mediaUrl" class="max-w-full h-auto max-h-64 object-contain rounded-xl cursor-pointer" alt="Imagen enviada">
+                                    </template>
+                                    <template x-if="msg.messageType === 'audio'">
+                                        <audio controls :src="msg.mediaUrl" class="w-full max-w-[250px] h-10 mt-1"></audio>
+                                    </template>
+                                    <template x-if="msg.messageType === 'document' || msg.messageType === 'video'">
+                                        <a :href="msg.mediaUrl" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-black/10 hover:bg-black/20 rounded-lg text-sm font-medium transition-colors">
+                                            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <span class="truncate" x-text="msg.content || 'Descargar archivo'"></span>
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <p x-show="msg.content && msg.messageType !== 'document' && msg.messageType !== 'video'" class="text-[14px] leading-relaxed whitespace-pre-wrap font-medium" x-text="msg.content"></p>
+
                             {{-- Pie de mensaje --}}
                             <div class="flex items-center justify-end gap-1.5 mt-1">
-                                <span class="text-[10px]" :class="msg.direction === 'outbound' ? 'text-white/70' : 'text-[#64748B]'" x-text="msg.time"></span>
+                                <span class="text-[10px] font-medium text-white/60" x-text="msg.time"></span>
                                 
                                 {{-- Ticks de lectura (solo outbound) --}}
                                 <template x-if="msg.direction === 'outbound' && !msg.isInternalNote">
@@ -169,20 +189,38 @@
             </div>
 
             {{-- Barra de escritura --}}
-            <div class="bg-white border-t border-[#E2E8F0] px-4 py-3 shrink-0">
+            <div class="bg-black/10 border-t border-white/10 px-4 py-3 shrink-0 relative">
+                
+                {{-- Dropdown de Respuestas Rápidas --}}
+                <div x-show="showCannedResponses" class="absolute bottom-full mb-2 left-4 w-96 bg-[#001B3D] border border-white/10 rounded-xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.7)] z-50 overflow-hidden" style="display: none;">
+                    <div class="p-2 bg-[#00122A] border-b border-white/10 text-xs font-bold text-white/60 tracking-wide uppercase">Respuestas Rápidas</div>
+                    <ul class="max-h-60 overflow-y-auto custom-scrollbar-cards">
+                        <template x-for="cr in filteredCannedResponses" :key="cr.id">
+                            <li @click="insertCannedResponse(cr)" class="p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 transition-colors">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold text-[#00CEFF] bg-[#00CEFF]/10 px-1.5 py-0.5 rounded border border-[#00CEFF]/20" x-text="'/' + cr.shortcut"></span>
+                                    <span class="text-sm font-bold text-white" x-text="cr.title"></span>
+                                </div>
+                                <p class="text-xs text-white/60 line-clamp-2" x-text="cr.content"></p>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+
                 <div class="flex items-center gap-3">
                     {{-- Input --}}
                     <div class="flex-1 relative group">
                         <input
+                            x-ref="messageInput"
                             type="text"
                             x-model="messageInput"
                             @keydown.enter="isInternalNoteMode ? sendInternalNote() : sendMessage()"
-                            :placeholder="isInternalNoteMode ? 'Escribe una nota interna para el equipo...' : 'Escribe tu mensaje...'"
-                            :class="isInternalNoteMode ? 'bg-[#FFFBEB] border-[#FDE68A] focus:ring-[#F59E0B]/10 focus:border-[#F59E0B] placeholder-[#D97706]/70' : 'bg-white border-slate-200 focus:ring-[#0056D2]/10 focus:border-[#0056D2] placeholder-slate-400'"
-                            class="w-full px-5 py-3.5 text-sm border shadow-sm rounded-full focus:outline-none focus:ring-4 transition-all pr-12 group-hover:shadow-md"
+                            :placeholder="isInternalNoteMode ? 'Escribe una nota interna para el equipo...' : 'Escribe tu mensaje... (Usa / para respuestas rápidas)'"
+                            :class="isInternalNoteMode ? 'bg-[#F59E0B]/10 border-[#F59E0B]/30 text-white focus:ring-[#F59E0B]/30 focus:border-[#F59E0B] placeholder-[#F59E0B]/50' : 'bg-black/30 border-white/10 text-white focus:ring-[#00CEFF]/30 focus:border-[#00CEFF] placeholder-white/40 shadow-inner'"
+                            class="w-full px-5 py-3.5 text-sm border rounded-full focus:outline-none focus:ring-2 transition-all pr-12"
                         >
                         {{-- Botón emoji --}}
-                        <button class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors">
+                        <button class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -192,33 +230,33 @@
                     {{-- Estado IA / Agente (Dropdown de Asignación) --}}
                     <div class="relative flex items-center shrink-0" x-data="{ openAssign: false }">
                         {{-- Bot activo: Click para asignar --}}
-                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 px-3 py-1.5 border border-transparent hover:border-slate-200 rounded-full transition-colors" x-show="selectedConversation.isBotActive" title="Haz clic para asignar">
-                            <span class="w-2 h-2 bg-[#10B981] rounded-full animate-pulse-dot"></span>
-                            <span class="text-[#10B981] font-medium whitespace-nowrap" x-text="selectedConversation.botName + ' respondiendo'"></span>
-                            <svg class="w-3 h-3 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-white/5 px-3 py-1.5 border border-transparent hover:border-white/10 rounded-full transition-colors" x-show="selectedConversation.isBotActive" title="Haz clic para asignar">
+                            <span class="w-2 h-2 bg-[#10B981] rounded-full animate-pulse-dot shadow-[0_0_5px_#10B981]"></span>
+                            <span class="text-[#10B981] font-bold whitespace-nowrap" x-text="selectedConversation.botName + ' respondiendo'"></span>
+                            <svg class="w-3 h-3 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                         </div>
                         
                         {{-- Humano activo: Click para reasignar o devolver a bot --}}
-                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 px-3 py-1.5 border border-transparent hover:border-slate-200 rounded-full transition-colors" x-show="!selectedConversation.isBotActive && selectedConversation.agentName" title="Haz clic para reasignar">
-                            <span class="text-[#94A3B8] font-medium whitespace-nowrap">Asignado a: <strong class="text-[#1E293B]" x-text="selectedConversation.agentName"></strong></span>
-                            <svg class="w-3 h-3 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        <div @click="openAssign = !openAssign" class="flex items-center gap-2 text-xs cursor-pointer hover:bg-white/5 px-3 py-1.5 border border-transparent hover:border-white/10 rounded-full transition-colors" x-show="!selectedConversation.isBotActive && selectedConversation.agentName" title="Haz clic para reasignar">
+                            <span class="text-white/60 font-medium whitespace-nowrap">Asignado a: <strong class="text-white" x-text="selectedConversation.agentName"></strong></span>
+                            <svg class="w-3 h-3 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                         </div>
 
                         {{-- Dropdown Menu --}}
-                        <div x-show="openAssign" @click.away="openAssign = false" class="absolute bottom-full mb-2 left-0 w-48 bg-white border border-[#E2E8F0] shadow-xl rounded-xl overflow-hidden z-50">
-                            <div class="p-2 border-b border-[#E2E8F0] bg-slate-50">
-                                <span class="text-xs font-semibold text-[#64748B]">Asignar a...</span>
+                        <div x-show="openAssign" @click.away="openAssign = false" class="absolute bottom-full mb-2 right-0 w-52 bg-[#001B3D] border border-white/10 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.7)] rounded-xl overflow-hidden z-50">
+                            <div class="p-2 border-b border-white/10 bg-[#00122A]">
+                                <span class="text-xs font-bold text-white/60 tracking-wide uppercase">Asignar a...</span>
                             </div>
-                            <div class="max-h-48 overflow-y-auto custom-scrollbar">
+                            <div class="max-h-48 overflow-y-auto custom-scrollbar-cards">
                                 <template x-for="member in teamMembers" :key="member.id">
-                                    <button @click="assignAgent(member.id, member.name); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-[#F1F5F9] flex items-center gap-2 transition-colors">
-                                        <div class="w-6 h-6 rounded-full text-[10px] text-white flex items-center justify-center font-bold" :style="'background-color: ' + member.color" x-text="member.initials"></div>
-                                        <span x-text="member.name" class="text-[#1E293B]"></span>
+                                    <button @click="assignAgent(member.id, member.name); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-white/10 flex items-center gap-2 transition-colors">
+                                        <div class="w-6 h-6 rounded-full text-[10px] text-white flex items-center justify-center font-bold shadow-inner" :style="'background-color: ' + member.color" x-text="member.initials"></div>
+                                        <span x-text="member.name" class="text-white font-medium"></span>
                                     </button>
                                 </template>
                             </div>
-                            <div class="p-1 border-t border-[#E2E8F0]" x-show="!selectedConversation.isBotActive">
-                                <button @click="unassignAgent(); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 font-medium flex items-center gap-2 transition-colors">
+                            <div class="p-1 border-t border-white/10 bg-[#00122A]" x-show="!selectedConversation.isBotActive">
+                                <button @click="unassignAgent(); openAssign = false" class="w-full text-left px-3 py-2 text-sm hover:bg-rose-500/10 text-rose-400 font-bold flex items-center gap-2 transition-colors rounded-lg">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     Devolver al Bot
                                 </button>
@@ -229,8 +267,8 @@
                     {{-- Botón Enviar --}}
                     <button
                         @click="isInternalNoteMode ? sendInternalNote() : sendMessage()"
-                        :class="isInternalNoteMode ? 'bg-[#F59E0B] hover:bg-[#D97706] hover:shadow-[#F59E0B]/30' : 'bg-[#0056D2] hover:bg-[#0047B3] hover:shadow-[#0056D2]/30'"
-                        class="text-white px-6 py-3 rounded-full text-sm font-medium flex items-center gap-2 transition-all shrink-0 active:scale-95 hover:shadow-lg"
+                        :class="isInternalNoteMode ? 'bg-[#F59E0B] text-[#011B3D] hover:bg-[#FCD34D] shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-[#00CEFF] text-[#011B3D] hover:bg-[#00E5FF] shadow-[0_0_15px_rgba(0,206,255,0.4)]'"
+                        class="px-6 py-3 rounded-full text-sm font-bold flex items-center gap-2 transition-all shrink-0 active:scale-95"
                     >
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -242,24 +280,24 @@
                 {{-- Acciones rápidas --}}
                 <div class="flex items-center gap-2 mt-2 pl-1">
                     {{-- Adjuntar --}}
-                    <button class="text-[#94A3B8] hover:text-[#64748B] transition-colors p-1 rounded" title="Adjuntar archivo">
+                    <button class="text-white/40 hover:text-white transition-colors p-1 rounded" title="Adjuntar archivo">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                         </svg>
                     </button>
                     {{-- Nota interna --}}
-                    <button @click="isInternalNoteMode = !isInternalNoteMode" :class="isInternalNoteMode ? 'text-[#F59E0B] bg-[#FFFBEB]' : 'text-[#94A3B8] hover:text-[#F59E0B] hover:bg-slate-50'" class="transition-colors p-1.5 px-2 rounded-lg flex items-center gap-1" title="Nota interna">
+                    <button @click="isInternalNoteMode = !isInternalNoteMode" :class="isInternalNoteMode ? 'text-[#011B3D] bg-[#F59E0B] font-bold' : 'text-white/40 hover:text-[#F59E0B] hover:bg-[#F59E0B]/10'" class="transition-all p-1.5 px-2 rounded-lg flex items-center gap-1" title="Nota interna">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                        <span class="text-[11px] font-medium">Nota Interna</span>
+                        <span class="text-[11px] font-medium" :class="isInternalNoteMode ? 'font-bold' : ''">Nota Interna</span>
                     </button>
                     {{-- Respuestas rápidas --}}
-                    <button class="text-[#94A3B8] hover:text-[#0056D2] transition-colors p-1 rounded flex items-center gap-1" title="Respuestas rápidas">
+                    <button class="text-white/40 hover:text-[#00CEFF] hover:bg-[#00CEFF]/10 transition-colors p-1.5 px-2 rounded-lg flex items-center gap-1" title="Respuestas rápidas">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <span class="text-[10px] font-medium">Rápidas</span>
+                        <span class="text-[11px] font-medium">Rápidas</span>
                     </button>
                 </div>
             </div>
