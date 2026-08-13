@@ -31,3 +31,6 @@
 - Tailwind CSS 4
 - Alpine.js 3
 - Vite (bundler)
+
+## Flujo de Trabajo
+- Antes de hacer cambios en la interfaz (archivos `.jsx` o `.css`), verifica si el proceso de compilación del frontend (`npm run dev`) está en ejecución. Si no está corriendo, inícialo en segundo plano automáticamente para asegurar que los cambios se reflejen en tiempo real en el navegador, y notifica que lo has hecho.

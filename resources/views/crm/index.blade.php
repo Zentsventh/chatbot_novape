@@ -3,26 +3,26 @@
 @section('title', 'CRM y Ventas — Smart AI Hosting Solutions')
 
 @section('content')
-<div class="flex-1 flex flex-col bg-transparent w-full h-full overflow-hidden" x-data="crmApp()">
+<div class="flex-1 flex flex-col w-full h-full overflow-hidden bg-[#FAFCFE]" x-data="crmApp()">
     {{-- Header de la sección --}}
-    <div class="px-8 py-6 border-b border-white/10 bg-[#00122A]/50 backdrop-blur-md shrink-0 flex items-center justify-between">
+    <div class="px-8 py-5 border-b border-[#F1F5F9] shrink-0 flex items-center justify-between bg-white z-10">
         <div>
-            <h1 class="text-2xl font-bold text-white">Pipeline de Ventas (CRM)</h1>
-            <p class="text-sm text-white/60 mt-1">Arrastra y suelta las oportunidades a través de tu embudo. Ingreso proyectado: <span class="text-[#00CEFF] font-bold shadow-[0_0_10px_rgba(0,206,255,0.3)]" x-text="'$' + totalValue"></span></p>
+            <h1 class="text-[18px] font-bold text-main tracking-tight">Pipeline de Ventas (CRM)</h1>
+            <p class="text-[13px] text-text-muted mt-0.5">Arrastra y suelta las oportunidades. Ingreso proyectado: <span class="text-corp font-bold" x-text="formatCurrency(totalValue)"></span></p>
         </div>
         <div class="flex items-center gap-3">
             <div class="relative">
-                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                     type="text"
                     x-model="searchQuery"
                     placeholder="Buscar oportunidad..."
-                    class="w-64 pl-10 pr-4 py-2 text-sm bg-black/20 border border-white/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#00CEFF] focus:border-[#00CEFF] text-white placeholder-white/50 transition-all shadow-inner"
+                    class="w-64 pl-9 pr-4 py-2 text-[13px] input-corp"
                 >
             </div>
-            <button @click="showModal = true" class="flex items-center gap-2 px-4 py-2 bg-[#00CEFF] text-[#011B3D] rounded-lg text-sm font-bold hover:shadow-[0_0_15px_rgba(0,206,255,0.6)] hover:bg-[#00E5FF] transition-all">
+            <button @click="showModal = true" class="flex items-center gap-1.5 px-4 py-2 bg-corp text-white rounded-xl text-[13px] font-bold hover:bg-[#002052] transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -32,59 +32,59 @@
     </div>
 
     {{-- Kanban Board --}}
-    <div class="flex-1 overflow-x-auto overflow-y-hidden p-8 flex gap-6 items-start custom-scrollbar">
+    <div class="flex-1 overflow-x-auto overflow-y-hidden p-6 flex gap-5 items-start custom-scrollbar">
         <template x-for="column in columns" :key="column.id">
-            <div class="w-80 shrink-0 flex flex-col max-h-full bg-[#002B6A]/40 backdrop-blur-md rounded-xl border border-white/10 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5)]"
+            <div class="w-80 shrink-0 flex flex-col max-h-full bg-white rounded-[20px] border border-[#E2E8F0] shadow-sm"
                  @dragover.prevent="dragOverColumn = column.id"
                  @dragleave="dragOverColumn = null"
                  @drop="onDrop($event, column.id)"
-                 :class="dragOverColumn === column.id ? 'bg-[#0665E0]/20 border-[#00CEFF]' : ''">
+                 :class="dragOverColumn === column.id ? 'bg-[#F8FAFC] border-corp ring-2 ring-corp/20' : ''">
                 {{-- Column Header --}}
-                <div class="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#00122A]/80 backdrop-blur-md rounded-t-xl z-10">
+                <div class="p-4 border-b border-[#F1F5F9] flex items-center justify-between sticky top-0 bg-white rounded-t-[20px] z-10">
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" :class="column.colorClass"></div>
-                        <h3 class="font-bold text-white text-sm" x-text="column.title"></h3>
-                        <span class="px-2 py-0.5 rounded-full bg-white/10 text-white/80 text-xs font-semibold border border-white/5" x-text="getCardsForColumn(column.id).length"></span>
+                        <div class="w-2.5 h-2.5 rounded-full" :class="column.colorClass"></div>
+                        <h3 class="font-bold text-[#1E293B] text-[13px]" x-text="column.title"></h3>
+                        <span class="px-2 py-0.5 rounded-full bg-[#F1F5F9] text-text-muted text-[11px] font-bold" x-text="getCardsForColumn(column.id).length"></span>
                     </div>
-                    <div class="text-[#00CEFF] text-sm font-semibold" x-text="'$' + getColumnTotal(column.id)"></div>
+                    <div class="text-corp text-[13px] font-bold" x-text="formatCurrency(getColumnTotal(column.id))"></div>
                 </div>
 
                 {{-- Column Body (Cards) --}}
-                <div class="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar-cards">
+                <div class="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
                     <template x-for="card in getFilteredCardsForColumn(column.id)" :key="card.id">
-                        <div class="bg-gradient-to-b from-[#0665E0]/40 to-[#02449E]/40 backdrop-blur-md border border-white/10 p-4 rounded-lg shadow-sm hover:shadow-[0_10px_25px_-5px_rgba(0,0,0,0.5)] hover:border-[#00CEFF]/50 transition-all cursor-grab group"
+                        <div class="bg-white border border-[#E2E8F0] p-4 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-corp/30 transition-all cursor-grab group relative"
                              draggable="true"
                              @dragstart="onDragStart($event, card.id)"
                              @dragend="onDragEnd($event)">
                             <div class="flex justify-between items-start mb-2">
-                                <div class="flex gap-1 flex-wrap flex-1">
+                                <div class="flex gap-1.5 flex-wrap flex-1">
                                     <template x-for="tag in card.tags" :key="tag.name">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded text-[#00CEFF] bg-[#00CEFF]/10 border border-[#00CEFF]/20 tracking-wide uppercase" x-text="tag.name"></span>
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide" :style="'background-color:' + tag.color + '15; color:' + tag.color" x-text="tag.name"></span>
                                     </template>
                                 </div>
-                                <button class="text-white/40 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-0.5">
+                                <button class="text-[#CBD5E1] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 absolute top-3 right-3">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                 </button>
                             </div>
-                            <h4 class="font-bold text-white text-sm mb-1 leading-tight" x-text="card.title"></h4>
-                            <p class="text-xs text-white/60 mb-3 line-clamp-2" x-text="card.company"></p>
+                            <h4 class="font-bold text-main text-[13px] mb-1 leading-snug pr-4" x-text="card.title"></h4>
+                            <p class="text-[11px] text-[#64748B] mb-3 line-clamp-2" x-text="card.company"></p>
                             
-                            <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-1">
+                            <div class="flex items-center justify-between border-t border-[#F1F5F9] pt-3 mt-1">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-[#002B6A] border border-white/20 text-white flex items-center justify-center text-[10px] font-bold shadow-inner">
+                                    <div class="w-6 h-6 rounded-full bg-corp text-white flex items-center justify-center text-[9px] font-bold">
                                         <span x-text="card.initials"></span>
                                     </div>
-                                    <span class="text-xs font-medium text-white/80" x-text="card.contact"></span>
+                                    <span class="text-[11px] font-semibold text-[#64748B]" x-text="card.contact"></span>
                                 </div>
-                                <span class="text-sm font-bold text-[#00CEFF]" x-text="'$' + card.value"></span>
+                                <span class="text-[13px] font-bold text-corp" x-text="formatCurrency(card.value)"></span>
                             </div>
                         </div>
                     </template>
                     
                     {{-- Drop zone vacía (visual feedback) --}}
-                    <div class="h-10 rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center text-xs text-white/40">
+                    <div class="h-10 rounded-xl border-2 border-dashed border-[#CBD5E1] flex items-center justify-center text-[11px] font-bold text-[#94A3B8]">
                         Soltar aquí
                     </div>
                 </div>
@@ -92,33 +92,33 @@
         </template>
         
         {{-- Añadir columna --}}
-        <button class="w-80 shrink-0 h-[57px] rounded-xl border-2 border-dashed border-white/20 flex items-center justify-center text-white/60 font-medium hover:border-[#00CEFF] hover:text-[#00CEFF] transition-colors bg-white/5 hover:bg-[#00CEFF]/5">
+        <button class="w-80 shrink-0 h-14 rounded-[20px] border-2 border-dashed border-[#CBD5E1] flex items-center justify-center text-[#64748B] font-bold text-[13px] hover:border-corp hover:text-corp transition-colors bg-[#F8FAFC]">
             + Añadir Etapa
         </button>
     </div>
 
     <!-- Modal Nueva Oportunidad -->
-    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;">
-        <div @click.away="showModal = false" class="bg-gradient-to-b from-[#0665E0]/90 to-[#02449E]/90 backdrop-blur-xl rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.7)] w-[400px] flex flex-col overflow-hidden border border-white/10">
-            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-[#011B3D]/50">
-                <h3 class="font-semibold text-white">Agregar Oportunidad de Venta</h3>
-                <button @click="showModal = false" class="text-white/50 hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-[#00122A]/40 backdrop-blur-sm" style="display: none;">
+        <div @click.away="showModal = false" class="bg-white rounded-[24px] shadow-[0_30px_60px_-15px_rgba(0,43,106,0.3)] w-[400px] flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-[#F1F5F9] flex justify-between items-center bg-[#FAFCFE]">
+                <h3 class="font-bold text-[#1E293B] text-[15px]">Agregar Oportunidad</h3>
+                <button @click="showModal = false" class="text-[#94A3B8] hover:text-[#EF4444] transition-colors bg-[#F1F5F9] hover:bg-red-50 p-1 rounded-full">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="p-5 space-y-4">
+            <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-white/80 mb-1.5 tracking-wide uppercase">Título de la Oportunidad</label>
-                    <input type="text" x-model="newDeal.title" class="w-full px-3 py-2 border border-white/20 bg-black/20 rounded-lg text-sm text-white focus:outline-none focus:border-[#00CEFF] focus:ring-1 focus:ring-[#00CEFF]" placeholder="Ej. Renovación Anual">
+                    <label class="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-wide">Título de la Oportunidad</label>
+                    <input type="text" x-model="newDeal.title" class="w-full px-4 py-2.5 input-corp text-[13px]" placeholder="Ej. Renovación Anual">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-white/80 mb-1.5 tracking-wide uppercase">Monto Estimado (USD)</label>
-                    <input type="number" x-model="newDeal.value" class="w-full px-3 py-2 border border-white/20 bg-black/20 rounded-lg text-sm text-white focus:outline-none focus:border-[#00CEFF] focus:ring-1 focus:ring-[#00CEFF]" placeholder="Ej. 1500">
+                    <label class="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-wide">Monto Estimado (USD)</label>
+                    <input type="number" x-model="newDeal.value" class="w-full px-4 py-2.5 input-corp text-[13px]" placeholder="Ej. 1500">
                 </div>
             </div>
-            <div class="p-4 border-t border-white/10 bg-[#011B3D]/50 flex justify-end gap-2">
-                <button @click="showModal = false" class="px-4 py-2 text-sm font-medium text-white/60 hover:text-white transition-colors">Cancelar</button>
-                <button @click="saveDeal" class="px-4 py-2 bg-[#00CEFF] text-[#011B3D] text-sm font-bold rounded-lg hover:bg-[#00E5FF] hover:shadow-[0_0_15px_rgba(0,206,255,0.5)] transition-all">Crear Oportunidad</button>
+            <div class="p-5 border-t border-[#F1F5F9] bg-[#FAFCFE] flex justify-end gap-3">
+                <button @click="showModal = false" class="px-4 py-2.5 text-[13px] font-bold text-[#64748B] hover:text-main transition-colors">Cancelar</button>
+                <button @click="saveDeal" class="px-5 py-2.5 bg-corp text-white text-[13px] font-bold rounded-xl hover:bg-[#002052] transition-colors shadow-sm">Crear Oportunidad</button>
             </div>
         </div>
     </div>
@@ -143,15 +143,15 @@
 </style>
 
 <script>
-function crmApp() {
-    return {
-        searchQuery: '',
-        columns: [
-            { id: 'lead', title: 'Nuevos Leads', colorClass: 'text-[#00CEFF]' },
-            { id: 'prospect', title: 'Contactados', colorClass: 'text-[#F59E0B]' },
-            { id: 'negotiation', title: 'En Negociación', colorClass: 'text-[#8B5CF6]' },
-            { id: 'won', title: 'Cerrado Ganado', colorClass: 'text-[#10B981]' },
-        ],
+    function crmApp() {
+        return {
+            searchQuery: '',
+            columns: [
+                { id: 'lead', title: 'Nuevos Leads', colorClass: 'bg-[#5BA3E6]' },
+                { id: 'prospect', title: 'Contactados', colorClass: 'bg-[#F59E0B]' },
+                { id: 'negotiation', title: 'En Negociación', colorClass: 'bg-[#8B5CF6]' },
+                { id: 'won', title: 'Cerrado Ganado', colorClass: 'bg-[#10B981]' },
+            ],
         cards: [],
         isLoading: true,
         draggedCardId: null,
@@ -220,16 +220,19 @@ function crmApp() {
                   }
               });
         },
-        get totalValue() {
-            return this.cards.reduce((acc, card) => acc + card.value, 0).toLocaleString();
-        },
-        getColumnTotal(columnId) {
-            return this.getCardsForColumn(columnId).reduce((acc, card) => acc + card.value, 0).toLocaleString();
-        },
-        getCardsForColumn(columnId) {
-            return this.cards.filter(c => c.columnId === columnId);
-        },
-        getFilteredCardsForColumn(columnId) {
+            formatCurrency(val) {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val);
+            },
+            get totalValue() {
+                return this.cards.reduce((acc, card) => acc + card.value, 0);
+            },
+            getColumnTotal(columnId) {
+                return this.getCardsForColumn(columnId).reduce((acc, card) => acc + card.value, 0);
+            },
+            getCardsForColumn(columnId) {
+                return this.cards.filter(c => c.columnId === columnId);
+            },
+            getFilteredCardsForColumn(columnId) {
             let columnCards = this.getCardsForColumn(columnId);
             if (this.searchQuery !== '') {
                 const q = this.searchQuery.toLowerCase();

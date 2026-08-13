@@ -2,38 +2,40 @@
 
 /* ============================================
    SMART AI HOSTING SOLUTIONS
-   Paleta de Colores Corporativos
+   Premium Light Mode — Custom Navy & Cyan Palette
    ============================================ */
 
 :root {
-    /* Colores principales */
-    --color-primary: #0056D2;
-    --color-primary-hover: #0047B3;
-    --color-primary-light: #E8F0FE;
-    --color-secondary: #E2E8F0;
-    --color-bg-chat: #F8FAFC;
-    --color-text-primary: #1E293B;
-    --color-text-secondary: #64748B;
-    --color-text-muted: #94A3B8;
+    /* Paleta solicitada por el usuario */
+    --color-bg-radial-center: #012A5E; /* Azul Marino Profundo */
+    --color-bg-radial-edge: #00122A;   /* Azul Noche */
+    --color-bg-solid: #011B3D;         /* Base sólida */
+    
+    --color-electric-top: #0665E0;     /* Azul Rey Eléctrico */
+    --color-electric-bottom: #02449E;  /* Azul Zafiro */
+    
+    --color-cyan-normal: #00CEFF;      /* Cian Neón */
+    --color-cyan-hover: #00E5FF;
+    
+    --color-corp-dark: #002B6A;        /* Azul Corporativo Oscuro */
 
-    /* Colores de acento */
-    --color-accent-green: #10B981;
-    --color-accent-teal: #0D9488;
-    --color-accent-red: #EF4444;
-    --color-accent-orange: #F59E0B;
-    --color-accent-purple: #8B5CF6;
-
-    /* Canales */
-    --color-whatsapp: #25D366;
-    --color-instagram: #E1306C;
-    --color-messenger: #0084FF;
-
-    /* Bordes y fondos */
+    /* Mapeo para Modo Claro (Light Mode) */
+    
+    /* El fondo global detrás de la tarjeta blanca será el Azul Eléctrico vibrante */
+    --bg-global: linear-gradient(135deg, var(--color-electric-top) 0%, var(--color-electric-bottom) 100%);
+    
+    /* El Sidebar será el Azul Marino Profundo elegante */
+    --sidebar-bg: radial-gradient(circle at top left, var(--color-bg-radial-center) 0%, var(--color-bg-radial-edge) 100%);
+    
+    /* Textos (sobre blanco) usarán los tonos más oscuros de la paleta */
+    --color-text-main: var(--color-bg-radial-edge); /* #00122A */
+    --color-text-secondary: var(--color-corp-dark); /* #002B6A */
+    --color-text-muted: #64748B; /* Gris azulado para sutiles */
+    
+    /* Elementos UI */
+    --color-bg-chat: #F4F7FB;
     --color-border: #E2E8F0;
-    --color-border-light: #F1F5F9;
-    --color-bg-sidebar: #FFFFFF;
-    --color-bg-hover: #F1F5F9;
-    --color-bg-active: #EFF6FF;
+    --content-radius: 32px;
 }
 
 /* ============================================
@@ -42,226 +44,201 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: var(--color-text-primary);
-    background-color: #F1F5F9;
+    color: var(--color-text-main);
+    background: var(--bg-global);
+    min-height: 100vh;
 }
 
-/* Scrollbar personalizado */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 5px;
+/* ============================================
+   Scrollbar
+   ============================================ */
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-corp-dark); }
+
+/* ============================================
+   Contenedor Principal Blanco (El Modo Claro)
+   ============================================ */
+
+.main-white-container {
+    background: #FFFFFF;
+    border-radius: var(--content-radius);
+    box-shadow: 0 24px 60px rgba(0, 18, 42, 0.4); /* Sombra oscura profunda */
+    overflow: hidden;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+/* ============================================
+   Sidebar (Azul Noche)
+   ============================================ */
+
+.sidebar-navy {
+    background: var(--sidebar-bg);
+    box-shadow: 6px 0 24px rgba(1, 42, 94, 0.15);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
-    border-radius: 10px;
-}
+/* ============================================
+   Burbujas de chat
+   ============================================ */
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
-}
-
-/* Animaciones */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes recording-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slide-right {
-    animation: slideInRight 0.3s ease-out;
-}
-
-.animate-slide-left {
-    animation: slideInLeft 0.3s ease-out;
-}
-
-.animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
-}
-
-.animate-pulse-dot {
-    animation: pulse-dot 2s ease-in-out infinite;
-}
-
-.animate-recording {
-    animation: recording-pulse 1.5s ease-in-out infinite;
-}
-
-/* Burbujas de chat */
 .bubble-incoming {
-    background-color: var(--color-secondary);
-    color: var(--color-text-primary);
-    border-radius: 4px 20px 20px 20px;
+    background-color: #F4F7FB;
+    color: var(--color-text-main);
+    /* iMessage/WhatsApp style: fully rounded except the origin corner */
+    border-radius: 20px 20px 20px 6px;
+    padding: 12px 18px; /* More breathing room */
+    font-size: 14px; /* Larger text for readability */
     max-width: 75%;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    line-height: 1.5;
 }
 
 .bubble-outgoing {
-    background-color: var(--color-primary);
+    background: linear-gradient(135deg, #0665E0 0%, #02449E 100%);
     color: #FFFFFF;
-    border-radius: 20px 4px 20px 20px;
+    border-radius: 20px 20px 6px 20px;
+    padding: 12px 18px;
+    font-size: 14px;
     max-width: 75%;
-    box-shadow: 0 1px 2px rgba(0, 86, 210, 0.15);
+    box-shadow: 0 6px 16px rgba(6, 101, 224, 0.25);
+    line-height: 1.5;
 }
 
-.bubble-internal-note {
-    background-color: #FEF3C7;
-    color: #92400E;
-    border: 1px dashed #F59E0B;
-    border-radius: 12px;
-    max-width: 85%;
-}
+/* ============================================
+   Tabs de Canal
+   ============================================ */
 
-/* Tabs de canal activos */
 .channel-tab {
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     position: relative;
+    border-radius: 9999px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
 }
 
-.channel-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: var(--color-primary);
-    border-radius: 2px 2px 0 0;
+.channel-tab.active {
+    background: var(--color-electric-top);
+    color: #FFFFFF !important;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(6, 101, 224, 0.3);
 }
 
-/* Conversación activa en la lista */
+.channel-tab:not(.active):hover {
+    background: #F4F7FB;
+    color: var(--color-text-main);
+}
+
+/* ============================================
+   Conversación activa en la lista
+   ============================================ */
+
 .conversation-item {
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    border-radius: 20px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
 }
 
 .conversation-item:hover {
-    background-color: var(--color-bg-hover);
+    background-color: #F8FAFC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
-.conversation-item.active {
-    background-color: var(--color-bg-active);
-    border-left: 3px solid var(--color-primary);
+.conversation-item.active-chat {
+    background-color: #F0F6FF;
+    border-color: #E2E8F0;
+    box-shadow: 0 4px 12px rgba(6, 101, 224, 0.04);
 }
 
-/* Navegación sidebar */
-.nav-icon {
-    transition: all 0.2s ease;
-    position: relative;
+/* ============================================
+   Badges y Tags
+   ============================================ */
+
+.badge-cyan {
+    background: var(--color-cyan-normal);
+    color: var(--color-bg-radial-edge);
+    box-shadow: 0 2px 8px rgba(0, 206, 255, 0.3);
 }
 
-.nav-icon:hover {
-    color: var(--color-primary);
-    background-color: var(--color-bg-hover);
-}
+/* ============================================
+   Botón Cian Neón (Hover Effect Especial)
+   ============================================ */
 
-.nav-icon.active {
-    color: var(--color-primary);
-    background-color: var(--color-bg-active);
-}
-
-.nav-icon.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 25%;
-    bottom: 25%;
-    width: 3px;
-    background-color: var(--color-primary);
-    border-radius: 0 3px 3px 0;
-}
-
-/* Badge */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    font-weight: 600;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 9px;
-}
-
-/* Tags de colores */
-.tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 2px 8px;
+.btn-cyan {
+    background: var(--color-cyan-normal);
+    color: var(--color-bg-radial-edge); /* Texto oscuro para contraste */
+    font-weight: 700;
     border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 206, 255, 0.4); /* Resplandor */
+    transition: all 0.3s ease;
 }
 
-/* Modal backdrop */
-.modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+.btn-cyan:hover {
+    background: var(--color-cyan-hover);
+    box-shadow: 0 6px 24px rgba(0, 206, 255, 0.6);
+    transform: translateY(-2px);
 }
 
-/* Priority indicators */
-.priority-urgent { border-left-color: #EF4444; }
-.priority-high { border-left-color: #F59E0B; }
-.priority-normal { border-left-color: #10B981; }
-.priority-low { border-left-color: #94A3B8; }
-
-/* Tooltip */
-.tooltip {
-    position: relative;
+.btn-cyan:active {
+    transform: scale(0.98);
 }
 
-.tooltip::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 8px;
-    padding: 4px 8px;
-    background: #1E293B;
-    color: white;
-    font-size: 0.7rem;
-    border-radius: 4px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
+/* ============================================
+   Input estilo corporativo
+   ============================================ */
+
+.input-corp {
+    background: #FFFFFF;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+    border-radius: 16px; /* softer */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px; /* easier to read */
+    padding: 10px 16px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.tooltip:hover::after {
-    opacity: 1;
+.input-corp::placeholder {
+    color: #94A3B8; /* Lighter, friendlier grey */
 }
+
+.input-corp:focus {
+    outline: none;
+    border-color: #0665E0;
+    box-shadow: 0 0 0 4px rgba(6, 101, 224, 0.15), inset 0 2px 4px rgba(0,0,0,0.01);
+    background: #FFFFFF;
+}
+
+/* ============================================
+   CRM Card
+   ============================================ */
+
+.crm-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.crm-card:hover {
+    box-shadow: 0 4px 16px rgba(6, 101, 224, 0.08);
+    border-color: var(--color-electric-top);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   Utilidades Generales
+   ============================================ */
+.text-main { color: var(--color-text-main); }
+.text-corp { color: var(--color-corp-dark); }
+.bg-corp { background-color: var(--color-corp-dark); }
