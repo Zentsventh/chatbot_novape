@@ -20,14 +20,14 @@
     {{-- Estructura: Fondo azul vibrante, Padding general --}}
     <div class="h-screen p-6 flex items-center justify-center">
 
-        {{-- EL ÚNICO GRAN CONTENEDOR BLANCO con padding interno para el "marco" --}}
-        <div class="main-white-container w-full h-full flex relative overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[32px] p-2">
+        {{-- EL ÚNICO GRAN CONTENEDOR BLANCO con su sombra y bordes redondeados --}}
+        <div class="main-white-container w-full h-full flex relative overflow-hidden bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[32px] p-4">
             
-            {{-- Sidebar DENTRO del contenedor blanco, con su propio marco --}}
+            {{-- Sidebar DENTRO del contenedor blanco --}}
             @include('inbox.partials.sidebar-nav')
 
             {{-- Área principal a la derecha del sidebar --}}
-            <div class="flex-1 flex flex-col h-full bg-white relative z-10 rounded-[24px] overflow-hidden ml-2">
+            <div class="flex-1 flex flex-col h-full bg-white relative z-10 overflow-hidden">
                 
                 {{-- Header integrado --}}
                 <header class="h-[72px] flex items-center justify-between px-8 shrink-0 border-b border-[#F1F5F9]">

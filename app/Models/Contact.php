@@ -69,9 +69,6 @@ class Contact extends Model
     /**
      * Tags via polymorphic relationship.
      */
-    public function tags()
-    {
-        return $this->morphToMany(Tag::class, 'taggable');
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');

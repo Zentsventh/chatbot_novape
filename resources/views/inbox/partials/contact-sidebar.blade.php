@@ -88,14 +88,14 @@
 
             {{-- Botones de Acción --}}
             <div class="p-5 border-t border-[#F1F5F9] space-y-3 bg-white shrink-0">
-                <button class="w-full flex items-center justify-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#F0F6FF] hover:border-[#BFDBFE] hover:text-[#0665E0] text-[#64748B] py-3.5 rounded-2xl text-[13px] font-bold transition-all active:scale-[0.98]">
+                <button class="w-full flex items-center justify-center gap-2 bg-[#1E293B] hover:bg-[#0F172A] text-white py-3.5 rounded-2xl text-[13px] font-bold tracking-wide transition-all active:scale-[0.98] shadow-sm hover:shadow-md">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     CREAR COTIZACIÓN
                 </button>
-                <button @click="startCall()" class="w-full flex items-center justify-center gap-2 btn-cyan py-3.5 rounded-2xl text-[13px] tracking-wide shadow-[0_4px_16px_rgba(0,206,255,0.4)] hover:shadow-[0_6px_24px_rgba(0,206,255,0.6)]">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 24 24" stroke="currentColor" stroke-width="2">
+                <button @click="startCall()" class="w-full flex items-center justify-center gap-2 bg-[#0D9488] hover:bg-[#0F766E] text-white py-3.5 rounded-2xl text-[13px] font-bold tracking-wide transition-all active:scale-[0.98] shadow-[0_4px_12px_rgba(13,148,136,0.25)] hover:shadow-[0_6px_16px_rgba(13,148,136,0.35)]">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                     LLAMAR AHORA
