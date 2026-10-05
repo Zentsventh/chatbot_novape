@@ -125,6 +125,9 @@ class TeamChatController extends Controller
         ]);
 
         $targetUserId = $request->user_id;
+        if (!User::where('tenant_id', $user->tenant_id)->whereKey($targetUserId)->exists()) {
+            abort(403);
+        }
 
         if ($user->id == $targetUserId) {
             return response()->json(['error' => 'No puedes chatear contigo mismo'], 400);

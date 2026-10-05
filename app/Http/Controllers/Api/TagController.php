@@ -47,14 +47,18 @@ class TagController extends Controller
         if ($contact->tenant_id !== $request->user()->tenant_id) {
             abort(403);
         }
-        $request->validate(['tag_ids' => 'required|array']);
-        $contact->tags()->syncWithoutDetaching($request->tag_ids);
+        $validated = $request->validate(['tag_ids' => 'required|array', 'tag_ids.*' => 'integer|distinct']);
+        $tagIds = $validated['tag_ids'];
+        if (Tag::where('tenant_id', $request->user()->tenant_id)->whereIn('id', $tagIds)->count() !== count($tagIds)) {
+            abort(403);
+        }
+        $contact->tags()->syncWithoutDetaching($tagIds);
         return response()->json(['success' => true, 'tags' => $contact->tags]);
     }
 
     public function detachFromContact(Request $request, Contact $contact, Tag $tag)
     {
-        if ($contact->tenant_id !== $request->user()->tenant_id) abort(403);
+        if ($contact->tenant_id !== $request->user()->tenant_id || $tag->tenant_id !== $request->user()->tenant_id) abort(403);
         $contact->tags()->detach($tag->id);
         return response()->json(['success' => true]);
     }

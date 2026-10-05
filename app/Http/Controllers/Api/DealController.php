@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Deal;
+use App\Models\Contact;
 
 class DealController extends Controller
 {
@@ -45,6 +46,10 @@ class DealController extends Controller
             'contact_id' => 'nullable|integer|exists:contacts,id',
             'stage' => 'nullable|string|in:lead,prospect,proposal,negotiation,won,lost',
         ]);
+
+        if (!empty($validated['contact_id']) && !Contact::where('tenant_id', $request->user()->tenant_id)->whereKey($validated['contact_id'])->exists()) {
+            abort(403);
+        }
 
         $deal = Deal::create([
             'tenant_id' => $request->user()->tenant_id,

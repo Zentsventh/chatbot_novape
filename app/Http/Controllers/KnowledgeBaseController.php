@@ -82,13 +82,39 @@ class KnowledgeBaseController extends Controller
         $url = $request->input('url');
 
         try {
-            $response = Http::timeout(10)->get($url);
+            $host = parse_url($url, PHP_URL_HOST);
+            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+            if (!in_array($scheme, ['http', 'https'], true) || !$host || parse_url($url, PHP_URL_USER) || parse_url($url, PHP_URL_PASS)) {
+                return response()->json(['success' => false, 'message' => 'URL no permitida.'], 422);
+            }
+
+            $port = parse_url($url, PHP_URL_PORT) ?: ($scheme === 'https' ? 443 : 80);
+            if (!in_array($port, [80, 443], true)) {
+                return response()->json(['success' => false, 'message' => 'Puerto no permitido.'], 422);
+            }
+
+            $addresses = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : array_column(dns_get_record($host, DNS_A | DNS_AAAA) ?: [], 'ip');
+            if (!$addresses || count($addresses) !== count(array_filter($addresses, fn ($ip) => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)))) {
+                return response()->json(['success' => false, 'message' => 'Destino no permitido.'], 422);
+            }
+            if (!extension_loaded('curl')) {
+                throw new \RuntimeException('La verificación segura de URL requiere cURL.');
+            }
+
+            $response = Http::timeout(10)->withOptions([
+                'allow_redirects' => false,
+                'stream' => true,
+                'curl' => [CURLOPT_RESOLVE => ["{$host}:{$port}:{$addresses[0]}"]],
+            ])->get($url);
             
             if (!$response->successful()) {
                 throw new \Exception('Failed to fetch URL. Status: ' . $response->status());
             }
 
-            $html = $response->body();
+            $html = $response->toPsrResponse()->getBody()->read(2 * 1024 * 1024 + 1);
+            if (strlen($html) > 2 * 1024 * 1024) {
+                throw new \RuntimeException('El contenido supera el límite de 2 MB.');
+            }
             
             // Extracción de texto desde HTML
             $text = strip_tags(preg_replace('#<script(.*?)>(.*?)</script>#is', '', $html));
